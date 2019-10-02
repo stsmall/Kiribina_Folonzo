@@ -23,7 +23,7 @@ Notes
 """
 
 import argparse
-from glob import glob
+import glob
 import os.path
 import gzip
 
