@@ -120,7 +120,7 @@ def writemask(sample, chrom, mask_list, output_name):
 if __name__ == "__main__":
     mask = args.mask
     flags = args.keyword
-    mask_file_list = glob('*{}'.format(mask))
+    mask_file_list = glob.glob('*{}'.format(mask))
     for mask_file in mask_file_list:
         sample, chrom, mask_list = readmask(mask_file, flags)
         writemask(sample, chrom, mask_list, args.output)
