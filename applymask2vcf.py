@@ -55,15 +55,16 @@ def mask2dict(mask_file):
     with gzip.open(mask_file, 'rb') as mf:
         for line in mf:
             line = line.decode()
-            mask_line = line.split()
-            sample_name = mask_line[0]
-            if chromosome:
-                if chromosome != mask_line[1]:
-                    raise Exception("Expects only 1 chromosome, {}".format(line))
-            chromosome = mask_line[1]
-            mask_pos = mask_line[2:]
-            for pos in mask_pos:
-                mask_dict[pos].append(sample_name)
+            if line:
+                mask_line = line.split()
+                sample_name = mask_line[0]
+                if chromosome:
+                    if chromosome != mask_line[1]:
+                        raise Exception("Expects only 1 chromosome, {}".format(line))
+                chromosome = mask_line[1]
+                mask_pos = mask_line[2:]
+                for pos in mask_pos:
+                    mask_dict[pos].append(sample_name)
 
     return(mask_dict)
 
