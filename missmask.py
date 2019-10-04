@@ -30,7 +30,7 @@ parser.add_argument("--filter", action="store_true")
 args = parser.parse_args()
 
 
-def miss_mask(vcfFile, IX=9):
+def miss_mask(vcfFile, filter_mark, IX=9):
     """Creates a matrix file with missing data
 
     Parameters
@@ -67,7 +67,7 @@ def miss_mask(vcfFile, IX=9):
                         miss = [i for i, s in enumerate(var_list[IX:]) if re.search(r'\./|/\.|\.\||\|\.', s)]
                         if len(miss) == len(indv_list):
                             fout.write("{}\t{}\t{}\n".format(chrom, pos-1, pos))
-                        elif filter:
+                        elif filter_mark:
                             if filt not in ["PASS", "."]:
                                 if var_list[4] != ".":
                                     fout.write("{}\t{}\t{}\t{}\n".format(chrom, pos-1, pos, filt))
@@ -80,7 +80,7 @@ def miss_mask(vcfFile, IX=9):
 
 
 if __name__ == '__main__':
-    mask_dict, chrom = miss_mask(args.INvcf)
+    mask_dict, chrom = miss_mask(args.INvcf, args.filter)
     with gzip.open("Individual.mask.txt.gz", 'wt') as f:
         for ind in mask_dict.keys():
             f.write("{}\t{}\t{}\n".format(ind, chrom, "\t".join(mask_dict[ind])))
