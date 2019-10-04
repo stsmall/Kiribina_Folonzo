@@ -26,6 +26,7 @@ import gzip
 parser = argparse.ArgumentParser()
 parser.add_argument('-f',"--INvcf", type=str,
                     help='path to vcf IN file')
+parser.add_argument("--filter", type="store_true")
 args = parser.parse_args()
 
 
@@ -62,9 +63,13 @@ def miss_mask(vcfFile, IX=9):
                                 raise Exception("Expects only 1 chromosome, {}".format(line))
                         chrom = var_list[0]
                         pos = int(var_list[1])
+                        filt = var_list[6]
                         miss = [i for i, s in enumerate(var_list[IX:]) if re.search(r'\./|/\.|\.\||\|\.', s)]
                         if len(miss) == len(indv_list):
                             fout.write("{}\t{}\t{}\n".format(chrom, pos-1, pos))
+                        if filter:
+                            if filt not in ["PASS", "."]:
+                                fout.write("{}\t{}\t{}\n".format(chrom, pos-1, pos))
                         for gt_ix, gt in enumerate(var_list[IX:]):
                             sample = indv_list[gt_ix]
                             if "." in gt.split(":")[0]:

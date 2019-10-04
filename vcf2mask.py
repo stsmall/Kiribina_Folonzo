@@ -121,6 +121,7 @@ if __name__ == "__main__":
     mask = args.mask
     flags = args.keyword
     mask_file_list = glob.glob('*{}'.format(mask))
+    import ipdb;ipdb.set_trace()
     for mask_file in mask_file_list:
         sample, chrom, mask_list = readmask(mask_file, flags)
         writemask(sample, chrom, mask_list, args.output)

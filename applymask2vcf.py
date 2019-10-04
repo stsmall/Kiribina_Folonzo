@@ -55,17 +55,19 @@ def mask2dict(mask_file):
     with gzip.open(mask_file, 'rb') as mf:
         for line in mf:
             line = line.decode()
-            if line:
-                mask_line = line.split()
+            mask_line = line.split()
+            if mask_line:
                 sample_name = mask_line[0]
                 if chromosome:
                     if chromosome != mask_line[1]:
                         raise Exception("Expects only 1 chromosome, {}".format(line))
+                        break
                 chromosome = mask_line[1]
                 mask_pos = mask_line[2:]
                 for pos in mask_pos:
                     mask_dict[pos].append(sample_name)
-
+            else:
+                continue
     return(mask_dict)
 
 def applymask(vcf_file, mask_dict, out_file, geno):
@@ -104,7 +106,11 @@ def applymask(vcf_file, mask_dict, out_file, geno):
                        for ms in mask_samples:
                            if ms in sample_ix:
                                ms_ix = sample_ix.index(ms)
-                               var_list[ms_ix] = "./."
+                               gt = var_list[ms_ix][0]
+                               if "/" in gt:
+                                   var_list[ms_ix] = "./."
+                               elif "|" in gt:
+                                   var_list[ms_ix] = ".|."
                        if geno:
                            var_list[8] = "."
                        f.write("{}\n".format("\t".join(var_list)).encode())
