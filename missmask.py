@@ -69,7 +69,8 @@ def miss_mask(vcfFile, IX=9):
                             fout.write("{}\t{}\t{}\n".format(chrom, pos-1, pos))
                         elif filter:
                             if filt not in ["PASS", "."]:
-                                fout.write("{}\t{}\t{}\n".format(chrom, pos-1, pos))
+                                if var_list[4] != ".":
+                                    fout.write("{}\t{}\t{}\t{}\n".format(chrom, pos-1, pos, filt))
                         else:
                             for gt_ix, gt in enumerate(var_list[IX:]):
                                 sample = indv_list[gt_ix]
