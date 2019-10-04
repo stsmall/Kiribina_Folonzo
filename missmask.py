@@ -26,7 +26,7 @@ import gzip
 parser = argparse.ArgumentParser()
 parser.add_argument('-f',"--INvcf", type=str,
                     help='path to vcf IN file')
-parser.add_argument("--filter", type="store_true")
+parser.add_argument("--filter", action="store_true")
 args = parser.parse_args()
 
 
