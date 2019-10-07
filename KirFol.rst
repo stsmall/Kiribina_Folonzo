@@ -20,7 +20,7 @@
 	-vcf2mask.py -f *realign.flt1.ScoreCNN.Tranche.aln.vcf.gz -o KirFol.VCFmask.$CHR.txt
 	-applymask2vcf.py -f KirFol.AfunF3.$CONTIG.$CHR.pop.vcf.gz -m KirFol.mask.txt.gz -o KirFol.AfunF3.Contig{0,1,2}.${CHR}.pop.flt.vcf
 
-### post-processing; remove indels, gtDP gtGQ
+### post-processing; remove indels, gtDP gtGQ ? module load gcc/6.2.0
 	-vcftools --gzvcf KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.vcf.gz --remove-indels --minDP 10 --minGQ 30 --recode --stdout | gzip -c > KirFol.AfunF3.Contig{0,1,2}.${CHR}.pop.flt.HQ.snps.vcf.gz
 
 	X: kept 14459274 out of a possible 16211358 Sites
@@ -35,24 +35,26 @@
 		>Individual.mask.$CHR.txt.gz  # use for individual masks, sites where not all missing but individuals have missing gt
 		!assume no more filtering on individuals!
 	
-	X: 
+### nonaccessible regions + total callable sites
+	-vcftools --gzvcf KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.HQ.snps.vcf.gz --remove-indv La_02-07553_Folonzo --max-missing-count 202 --exclude-bed /scratch365/ssmall2/reference_fasta_index/AnfunSG_refs/AfunF3/nonaccessible.merge.bed --recode --stdout | gzip -c > KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.HQ.snps.mask.vcf.gz
+		#remove sites with all missing
+		>total sites with at least 1 called individual (Het + HomR + HomA)
+
+	X: kept 11202630 out of a possible 14459274 Sites
 	2R:
 	2L:
 	3R:
 	3L:
 
-### nonaccessible regions + total callable sites
-	-vcftools --gzvcf KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.HQ.snps.vcf.gz --exclude-bed nonaccessible.merge.bed --recode --stout | gzip -c > KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.HQ.snps.mask.vcf.gz
-		>total sites with at least 1 called individual (Het + HomR + HomA)
 
-### remove samples with > X% missing data
-	-vcf_to_zarr : scikit-allel
-		?individual missingness?
+### remove samples with > X% missing data  *** TODO
+	vcftools --gzvcf --missing-indv
+	vcftools --gzvcf --missing-site
+	-vcf_to_zarr : scikit-allel; add plots
 		?how many sites w/ X% missing?
 		?how many individuals to remove to maximize site coverage?
 		!total sites should not have changed!
 		>pop.flt.HQ.snps.mask.143.vcf.gz  # add number individuals
-	-vcftools --gzvcf --site-missingness  # just some stats here, prob same from sk-allel
 
 ### total callable sites with no missing	
 	vcftools --gzvcf KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.HQ.snps.mask.143.vcf.gz --max-missing 1 --out totalCallable.Nomissing
@@ -72,9 +74,9 @@
 		!individual fasta masked with Individual.mask.$CHR.txt.gz
 		!add phased mask, sites that are called but not phased!
 
-KEEP
+NOTES
 *pop.flt.vcf.gz  # has indels, no filtering
->*pop.flt.HQ.snps.vcf.gz  # has snps, GQ and DP filtering
+>*pop.flt.HQ.snps.vcf.gz  # has only snps, GQ and DP filtering
 >*pop.flt.HQ.snps.mask.vcf.gz  # nonaccessible mask
 >*pop.flt.HQ.snps.mask.143.vcf.gz  # remove individuals with too much missing data
 *pop.flt.HQ.snps.mask.143.var.vcf.gz  # variable sites only, no HomR, non-ref-ac 1, all are "/"
@@ -82,16 +84,34 @@ KEEP
 *pop.flt.HQ.snps.mask.143.var.phased.vcf.gz  # phased sites only
 
 
-## ancestral state estimations
+### ancestral state estimations
 vcfmerge subgroup & kirfol
 ancestral state using keightly
-	>FOO.miss.anc.vcf
+	>FOO.miss.anc.vcf add as AA
 
-## analysis
+### analysis
+
+## population structure
 allel - LD thinning
 
+### jupyter notebook
+~/anaconda3/bin/jupyter-notebook --no-browser --port=8777
+ssh -f ssmall2@rosalind.crc.nd.edu -L 8777:localhost:8777 -N
+paste link in browser
 
-export GATK_LOCAL_JAR=/afs/crc.nd.edu/user/s/ssmall2/programs_that_work/gatk-4.1.0.0/gatk-package-4.1.0.0-local.jar
-source gatk
-export PATH=$HOME/anaconda2/bin:$PATH
-export GATK_SPARK_JAR=/afs/crc.nd.edu/user/s/ssmall2/programs_that_work/gatk-4.1.0.0/gatk-package-4.1.0.0-spark.jar
+KEEP
+*realign.flt1.ScoreCNN.Tranche.aln.vcf.gz  # move to backup drive
+*pop.flt.vcf.gz  # move to backup
+
+*pop.flt.HQ.snps.mask.143.var.vcf.gz
+*pop.flt.HQ.snps.mask.143.var.mix.vcf.gz
+*pop.flt.HQ.snps.mask.143.var.phased.vcf.gz
+
+DELETE
+rm -f *realign.vcf.gz
+rm -f *realign.flt1.ScoreCNN.Tranche.vcf.gz
+rm -f *realign.vcf.aln.mask.gz
+rm -rf indiv_gvcfs
+rm -f *pop.flt.HQ.snps.vcf.gz
+rm -f *pop.flt.HQ.snps.mask.vcf.gz
+rm -f *pop.flt.HQ.snps.mask.143.vcf.gz
