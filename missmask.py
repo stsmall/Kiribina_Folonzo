@@ -74,7 +74,7 @@ def miss_mask(vcfFile, IX=9):
 
 
 if __name__ == '__main__':
-    mask_dict, chrom = miss_mask(args.INvcf)
+    mask_dict, chrom = miss_mask(vcfFile=args.INvcf)
     with gzip.open("{}.Individual.mask.txt.gz".format(chrom), 'wt') as f:
         for ind in mask_dict.keys():
             f.write("{}\t{}\t{}\n".format(ind, chrom, "\t".join(mask_dict[ind])))

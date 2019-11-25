@@ -23,11 +23,12 @@
 ### post-processing; remove indels, gtDP gtGQ ? module load gcc/6.2.0
 	-vcftools --gzvcf KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.vcf.gz --remove-indels --minDP 10 --minGQ 30 --recode --stdout | gzip -c > KirFol.AfunF3.Contig{0,1,2}.${CHR}.pop.flt.HQ.snps.vcf.gz
 
-	X: kept 14459274 out of a possible 16211358 Sites
-	2R:
-	2L:
-	3R:
-	3L:
+	X : kept 14459274 out of a possible 16211358 Sites
+	2R: kept 46115694 out of a possible 50348497 Sites
+	2L: kept 36683357 out of a possible 40708819 Sites
+	3R: kept 42394418 out of a possible 45933782 Sites
+	3L: kept 36524906 out of a possible 39979476 Sites
+			176177649				   193181932
 
 ### missing mask for fastas
 	-missmask.py -f KirFol.AfunF3.Contig{0,1,2}.${CHR}.pop.flt.HQ.snps.vcf.gz
@@ -40,12 +41,12 @@
 		#remove sites with all missing
 		>total sites with at least 1 called individual (Het + HomR + HomA)
 
-	X: kept 11202630 out of a possible 14459274 Sites
-	2R:
-	2L:
-	3R:
-	3L:
-
+	X : kept 11202630 out of a possible 14459274 Sites
+	2R: kept 35514376 out of a possible 46115694 Sites
+	2L: kept 28478106 out of a possible 36683357 Sites
+	3R: kept 28946333 out of a possible 42394418 Sites
+	3L: kept 20205402 out of a possible 36524906 Sites
+            124346847				   176177649
 
 ### remove samples with > X% missing data  *** TODO
 	vcftools --gzvcf --missing-indv
@@ -59,6 +60,11 @@
 ### total callable sites with no missing	
 	vcftools --gzvcf KirFol.AfunF3.Contig{0,1,2}.$CHR.pop.flt.HQ.snps.mask.143.vcf.gz --max-missing 1 --out totalCallable.Nomissing
 		!this is total number of callable sites with no missing data!
+	X : ?
+	2R: ?
+	2L: ?
+	3R: ?
+	3L: ?
 
 ### phasing
 	-shapeit4 w/recomb.map from LDJump, PS option
