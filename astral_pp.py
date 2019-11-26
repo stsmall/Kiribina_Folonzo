@@ -105,6 +105,7 @@ def make_windows(coord_file: str,
     """
     start_list = []
     end_list = []
+    step = clust
     with open(coord_file, 'r') as coords:
         for line in coords:
             s, e = line.split("-")
@@ -113,17 +114,16 @@ def make_windows(coord_file: str,
     with open(f"{scaf}.windows.out", 'w') as file1:
         # clust coords
         s_ix = 0
-        step = clust
         e_ix = s_ix + step
         try:
             start = start_list[s_ix]
             end = end_list[e_ix]
             file1.write(f"{scaf}\t{start}\t{end}\n")
-            s_ix = e_ix + 1
+            s_ix = e_ix
             e_ix = s_ix + step
         except IndexError:
             end = end_list[-1]
-            file1.write("{scaf}\t{start}\t{end}\n")
+            file1.write(f"{scaf}\t{start}\t{end}\n")
     return(None)
 
 
