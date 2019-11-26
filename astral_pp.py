@@ -118,13 +118,13 @@ def make_windows(coord_file: str,
         while e_ix < len(end_list):
             start = start_list[s_ix]
             end = end_list[e_ix]
-            file1.write(f"{scaf}\t{start}\t{end}\n")
+            file1.write(f"{scaf}\t{start}\t{end}")
             s_ix = e_ix
             e_ix = s_ix + step
         else:
             start = start_list[s_ix]
             end = end_list[-1]
-            file1.write(f"{scaf}\t{start}\t{end}\n")
+            file1.write(f"{scaf}\t{start}\t{end}")
     return(None)
 
 
