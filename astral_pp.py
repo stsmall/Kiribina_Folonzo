@@ -136,7 +136,7 @@ def parse_args(args):
     parser.add_argument("--groups", type=str,
                         help="file clustering tips into groups, use -a ASTRAL")
     parser.add_argument("--outgroup", type=str,
-                        help="outgoup name in trees, use ASTRAL")
+                        help="rooting using newick_utils")
     return(parser.parse_args(args))
 
 
