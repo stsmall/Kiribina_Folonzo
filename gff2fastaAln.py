@@ -189,8 +189,8 @@ def format_fasta(fname: str,
     out_file = open(f"{fname}.bpp.{chrom}.{s}-{e}.txt", 'w')
     for i in range(len(gff_dict)):
         k = f"{fname}_{str(i)}"
-        locuslist = []
-        headerlist = []
+        loci_list = []
+        header_list = []
         if loci >= clust:
             out_file.close()
             try:
@@ -203,31 +203,28 @@ def format_fasta(fname: str,
         else:
             for fasta in fasta_sequences:
                 header, sequence = fasta.id, str(fasta.seq)
-                locuslist.append(sequence[gff_dict[k].start:gff_dict[k].end])
-                headerlist.append(header)
-        samples = len(headerlist)
-        try:
-            seqlen = len(locuslist[0])
-        except:
-            import ipdb;ipdb.set_trace()
-        # Ns check point
-        try:
-            if any((seqX.count("N")/seqlen) > prct for seqX in locuslist):
-                # print("skipping, too many Ns")
-                skip_gaps += 1
-            else:
-                if bpp is True:
-                    out_file.write(f"{samples} {seqlen}\n\n")
+                loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
+                header_list.append(header)
+            samples = len(header_list)
+            seqlen = len(loci_list[0])
+            # Ns check point
+            try:
+                if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
+                    # print("skipping, too many Ns")
+                    skip_gaps += 1
                 else:
-                    out_file.write(f"\n")
-                for head, seq in zip(headerlist, locuslist):
                     if bpp is True:
-                        out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
+                        out_file.write(f"{samples} {seqlen}\n\n")
                     else:
-                        out_file.write(f">{head}\n{seq}\n")
-                loci += 1
-        except ZeroDivisionError:
-            import ipdb; ipdb.set_trace()
+                        out_file.write(f"\n")
+                    for head, seq in zip(header_list, loci_list):
+                        if bpp is True:
+                            out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
+                        else:
+                            out_file.write(f">{head}\n{seq}\n")
+                    loci += 1
+            except ZeroDivisionError:
+                import ipdb; ipdb.set_trace()
     out_file.close()
     print(f"{skip_gaps} regions skipped due to excess N's")
     return(None)
