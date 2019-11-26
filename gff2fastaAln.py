@@ -186,7 +186,7 @@ def format_fasta(fname: str,
         e = gff_dict[f"{fname}_{clust-1}"].end
     except KeyError:
         e = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
-    out_file = open(f"CDS.bpp.{chrom}.{s}-{e}.txt", 'w')
+    out_file = open(f"{fname}.bpp.{chrom}.{s}-{e}.txt", 'w')
     for i in range(len(gff_dict)):
         k = f"{fname}_{str(i)}"
         locuslist = []
@@ -206,7 +206,10 @@ def format_fasta(fname: str,
                 locuslist.append(sequence[gff_dict[k].start:gff_dict[k].end])
                 headerlist.append(header)
         samples = len(headerlist)
-        seqlen = len(locuslist[0])
+        try:
+            seqlen = len(locuslist[0])
+        except:
+            import ipdb;ipdb.set_trace()
         # Ns check point
         try:
             if any((seqX.count("N")/seqlen) > prct for seqX in locuslist):
