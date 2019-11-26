@@ -122,7 +122,7 @@ def make_windows(coord_list, clust, scaf):
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="astral_pp.py", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--trees", type=str, required=True,
                         help="trees file")
     parser.add_argument("--coords", type=str,
