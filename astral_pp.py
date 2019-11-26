@@ -13,7 +13,8 @@ fine scale analysis.
 Example
 -------
 
-    $ python astral_pp.py --trees FOO.newick --coords BAR.coords.txt --clust 50 --astral_exe ./path2astral --scafs CHROM
+    $ python astral_pp.py --trees FOO.newick --coords BAR.coords.txt
+    [--clust 50] [--astral_exe ./path2astral] [--scafs CHROM]
 
 Notes
 -----
@@ -29,7 +30,10 @@ import subprocess
 import sys
 
 
-def run_astral(tree_file, clust, astralexe, groups):
+def run_astral(tree_file: str,
+               clust: int,
+               astralexe: str,
+               groups: str):
     """Take groups of trees by line and runs them through ASTRAL
 
     Parameters
@@ -79,7 +83,9 @@ def run_astral(tree_file, clust, astralexe, groups):
     return(None)
 
 
-def make_windows(coord_list, clust, scaf):
+def make_windows(coord_file: str,
+                 clust: int,
+                 scaf: str):
     """Takes a list of coordinates corresponding to a file of trees, 1 per line
     and clusters them into groups for plotting
 
@@ -99,7 +105,7 @@ def make_windows(coord_list, clust, scaf):
     """
     start_list = []
     end_list = []
-    with open(coord_list, 'r') as coords:
+    with open(coord_file, 'r') as coords:
         for line in coords:
             s, e = line.split("-")
             start_list.append(s)
@@ -122,7 +128,8 @@ def make_windows(coord_list, clust, scaf):
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser(prog="astral_pp.py", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(prog="astral_pp.py",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--trees", type=str, required=True,
                         help="trees file")
     parser.add_argument("--coords", type=str,

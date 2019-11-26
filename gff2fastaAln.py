@@ -19,6 +19,7 @@ Example
 
 from Bio import SeqIO
 from dataclasses import dataclass
+from typing import Dict, List
 import sys
 import argparse
 
@@ -30,7 +31,9 @@ class CDS:
     end: int
 
 
-def get_cds(gff_file, min_cds, key="CDS"):
+def get_cds(gff_file: str,
+            min_cds: int,
+            key: str = "CDS"):
     """Converts gff file to dict with coordinates of each CDS
 
     Parameters
@@ -68,7 +71,11 @@ def get_cds(gff_file, min_cds, key="CDS"):
     return(cds, chrom_gff)
 
 
-def get_ncds(cdsdict, mxlen: int, mnlen: int, distance: int, chromlen: int):
+def get_ncds(cdsdict: Dict[str, object],
+             mxlen: int,
+             mnlen: int,
+             distance: int,
+             chromlen: int):
     """Returns the non-coding loci around the coding sequence
 
     Parameters
@@ -90,16 +97,16 @@ def get_ncds(cdsdict, mxlen: int, mnlen: int, distance: int, chromlen: int):
         dict with values of dataclass
 
     """
-    non_cds = {}  # type: Dict
-    loci = 0  # type: int
+    non_cds = {}
+    loci = 0
     for i in range(-1, len(cdsdict)):
         if i == -1:  # start to first CDS
             start = 0
             end = cdsdict[f"cds_0"].start
         else:
-            start = cdsdict[f"cds_{i}"].end  # type: int
+            start = cdsdict[f"cds_{i}"].end
             try:
-                end = cdsdict[f"cds_{i+1}"].start  # type: int
+                end = cdsdict[f"cds_{i+1}"].start
             except KeyError:
                 end = chromlen
         nstart = start
@@ -135,7 +142,14 @@ def get_ncds(cdsdict, mxlen: int, mnlen: int, distance: int, chromlen: int):
     return(non_cds)
 
 
-def format_fasta(fname, gff_dict, fasta_file, clust: int, chrom: str, prct: float, bpp: bool, just=10):
+def format_fasta(fname: str,
+                 gff_dict: Dict[str, object],
+                 fasta_file: str,
+                 clust: int,
+                 chrom: str,
+                 prct: float,
+                 bpp: bool,
+                 just: int = 10):
     """Creates BPP input files or if clust=1 and BPP=False, then a fasta file
     for each CDS and non-CDS.
 
@@ -216,7 +230,9 @@ def format_fasta(fname, gff_dict, fasta_file, clust: int, chrom: str, prct: floa
     return(None)
 
 
-def write_to_bed(fname, gff_dict, chrom):
+def write_to_bed(fname: str,
+                 gff_dict: Dict[str, object],
+                 chrom: int):
     """Write the contents of the dicts to file in bed format
 
     Parameters
@@ -243,7 +259,8 @@ def write_to_bed(fname, gff_dict, chrom):
 def parse_args(args):
     """Argument parser
     """
-    parser = argparse.ArgumentParser(prog="gff2fastaAln.py", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(prog="gff2fastaAln.py",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--gff", type=str, required=True,
                         help="gff file")
     parser.add_argument("--fasta", type=str, required=True,
