@@ -249,7 +249,7 @@ def write_to_bed(fname: str,
     None
     """
     with open(f"{fname}.bed", 'w') as out_bed:
-        for i in len(gff_dict):
+        for i in range(len(gff_dict)):
             start = gff_dict(f"{fname}_{i}").start
             end = gff_dict(f"{fname}_{i}").end
             out_bed.write(f"{chrom}\t{start}\t{end}\n")
