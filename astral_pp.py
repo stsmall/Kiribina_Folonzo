@@ -115,13 +115,14 @@ def make_windows(coord_file: str,
         # clust coords
         s_ix = 0
         e_ix = s_ix + step
-        try:
+        while e_ix < len(end_list):
             start = start_list[s_ix]
             end = end_list[e_ix]
             file1.write(f"{scaf}\t{start}\t{end}\n")
             s_ix = e_ix
             e_ix = s_ix + step
-        except IndexError:
+        else:
+            start = start_list[s_ix]
             end = end_list[-1]
             file1.write(f"{scaf}\t{start}\t{end}\n")
     return(None)
