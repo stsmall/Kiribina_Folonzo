@@ -101,7 +101,7 @@ def get_ncds(cdsdict: Dict[str, object],
     non_cds = {}
     loci = 0
     print(f"calculating non-cds locations\n")
-    for i in trange(-1, len(cdsdict)):
+    for i in range(-1, len(cdsdict)):
         if i == -1:  # start to first CDS
             start = 0
             end = cdsdict[f"cds_0"].start
@@ -253,7 +253,7 @@ def write_to_bed(fname: str,
     """
     with open(f"{fname}.bed", 'w') as out_bed:
         print(f"writing to bed files\n")
-        for i in trange(len(gff_dict)):
+        for i in range(len(gff_dict)):
             start = gff_dict[f"{fname}_{i}"].start
             end = gff_dict[f"{fname}_{i}"].end
             out_bed.write(f"{chrom}\t{start}\t{end}\n")
@@ -308,8 +308,8 @@ if __name__ == "__main__":
     BPP = args.bpp
     CLUST = args.clust
     cds_dict, n_chrom = get_cds(GFF_FILE, MIN_LEN_CDS)
-    ncds_dict = get_ncds(cds_dict, MAX_LEN, MIN_LEN, DIST_BETW, CHROM_LEN)
     format_fasta("cds", cds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
+    write_to_bed("cds", cds_dict, n_chrom)
+    ncds_dict = get_ncds(cds_dict, MAX_LEN, MIN_LEN, DIST_BETW, CHROM_LEN)
     format_fasta("ncds", ncds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
     write_to_bed("ncds", ncds_dict, n_chrom)
-    write_to_bed("cds", cds_dict, n_chrom)
