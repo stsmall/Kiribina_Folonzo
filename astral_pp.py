@@ -169,3 +169,4 @@ if __name__ == "__main__":
         command = f"mv astral.tre {SCAF}.astral.{CLUST}.tre"
         proc = subprocess.Popen(command, shell=True)
         proc.wait()
+    proc = subprocess.Popen(f"rm -f astral.out astral_tmp.tre", shell=True)

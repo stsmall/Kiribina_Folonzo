@@ -37,8 +37,8 @@ pytest.warns(RuntimeWarning)
 
 """
 
-from astral_pp import run_astral
-from astral_pp import make_windows
+from ..astral_pp import run_astral
+from ..astral_pp import make_windows
 import filecmp
 
 
