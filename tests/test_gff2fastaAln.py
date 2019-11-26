@@ -37,9 +37,9 @@ pytest.warns(RuntimeWarning)
 
 """
 
-from gff2fastaAln import get_cds
-from gff2fastaAln import get_ncds
-from gff2fastaAln import format_fasta
+from ..gff2fastaAln import get_cds
+from ..gff2fastaAln import get_ncds
+from ..gff2fastaAln import format_fasta
 from dataclasses import dataclass
 import filecmp
 
