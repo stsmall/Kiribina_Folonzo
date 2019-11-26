@@ -19,7 +19,8 @@ Example
 
 from Bio import SeqIO
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict
+from tqdm import trange
 import sys
 import argparse
 
@@ -99,7 +100,8 @@ def get_ncds(cdsdict: Dict[str, object],
     """
     non_cds = {}
     loci = 0
-    for i in range(-1, len(cdsdict)):
+    print(f"calculating non-cds locations\n")
+    for i in trange(-1, len(cdsdict)):
         if i == -1:  # start to first CDS
             start = 0
             end = cdsdict[f"cds_0"].start
@@ -187,7 +189,8 @@ def format_fasta(fname: str,
     except KeyError:
         e = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
     out_file = open(f"{fname}.bpp.{chrom}.{s}-{e}.txt", 'w')
-    for i in range(len(gff_dict)):
+    print(f"formatting files from alignments\n")
+    for i in trange(len(gff_dict)):
         k = f"{fname}_{str(i)}"
         loci_list = []
         header_list = []
@@ -249,7 +252,8 @@ def write_to_bed(fname: str,
     None
     """
     with open(f"{fname}.bed", 'w') as out_bed:
-        for i in range(len(gff_dict)):
+        print(f"writing to bed files\n")
+        for i in trange(len(gff_dict)):
             start = gff_dict(f"{fname}_{i}").start
             end = gff_dict(f"{fname}_{i}").end
             out_bed.write(f"{chrom}\t{start}\t{end}\n")
