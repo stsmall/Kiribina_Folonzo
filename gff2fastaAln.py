@@ -250,8 +250,8 @@ def write_to_bed(fname: str,
     """
     with open(f"{fname}.bed", 'w') as out_bed:
         for i in len(gff_dict):
-            start = gff_dict(f"{fname}_i").start
-            end = gff_dict(f"{fname}_i").end
+            start = gff_dict(f"{fname}_{i}").start
+            end = gff_dict(f"{fname}_{i}").end
             out_bed.write(f"{chrom}\t{start}\t{end}\n")
     return(None)
 
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     MIN_LEN_CDS = args.minCDS
     PRCT_MISS = args.prct
     DIST_BETW = args.distance
-    MAX_LEN = args.mxlne
+    MAX_LEN = args.mxlen
     MIN_LEN = args.mnlen
     CHROM_LEN = args.chromlen
     BPP = args.bpp
