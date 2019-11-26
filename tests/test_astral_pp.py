@@ -46,7 +46,7 @@ def test_run_astral():
     """Test of getCDS
     """
     tree_file = "test_tree_file.txt"
-    run_astral(tree_file, 5, "astral_exe", False)
+    run_astral(tree_file, 5, "~/programs_that_work/ASTRAL/Astral/astral.5.6.1.jar", False)
     assert(filecmp.cmp("test_astral.tre", "astral.tre") == True)
 
 
