@@ -243,7 +243,7 @@ def write_to_bed(fname, gff_dict, chrom):
 def parse_args(args):
     """Argument parser
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="gff2fastaAln.py", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--gff", type=str, required=True,
                         help="gff file")
     parser.add_argument("--fasta", type=str, required=True,
@@ -258,7 +258,7 @@ def parse_args(args):
                         help="max length for non-coding loci")
     parser.add_argument("--mnlength", type=int, default=100,
                         help="min length for non-coding loci")
-    parser.add_argument("--chromlen", type=int,
+    parser.add_argument("--chromlen", type=int, required=True,
                         help="length of chromosome or contig")
     parser.add_argument("--bpp", action="store_true",
                         help="bpp input files")

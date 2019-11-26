@@ -46,7 +46,7 @@ def test_run_astral():
     """Test of getCDS
     """
     tree_file = "test_tree_file.txt"
-    run_astral(tree_file, 10, "astral_exe", True)
+    run_astral(tree_file, 5, "astral_exe", False)
     assert(filecmp.cmp("test_astral.tre", "astral.tre") == True)
 
 
@@ -54,7 +54,7 @@ def test_make_windows():
     """Compare files
     """
     coord_list = "test_coords.txt"
-    make_windows(coord_list, 10, "3R")
+    make_windows(coord_list, 5, "3R")
     assert(filecmp.cmp("test_3R.windows.out", "3R.windows.out") == True)
 
 
