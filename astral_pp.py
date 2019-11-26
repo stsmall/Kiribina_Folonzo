@@ -113,7 +113,6 @@ def make_windows(coord_file: str,
             end_list.append(e)
     with open(f"{scaf}.windows.out", 'w') as file1:
         # clust coords
-        import ipdb;ipdb.set_trace()
         s_ix = 0
         e_ix = s_ix + step
         while e_ix < len(end_list):
