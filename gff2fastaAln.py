@@ -254,8 +254,8 @@ def write_to_bed(fname: str,
     with open(f"{fname}.bed", 'w') as out_bed:
         print(f"writing to bed files\n")
         for i in trange(len(gff_dict)):
-            start = gff_dict(f"{fname}_{i}").start
-            end = gff_dict(f"{fname}_{i}").end
+            start = gff_dict[f"{fname}_{i}"].start
+            end = gff_dict[f"{fname}_{i}"].end
             out_bed.write(f"{chrom}\t{start}\t{end}\n")
     return(None)
 
