@@ -298,8 +298,8 @@ if __name__ == "__main__":
     MIN_LEN_CDS = args.minCDS
     PRCT_MISS = args.prct
     DIST_BETW = args.distance
-    MAX_LEN = args.mxlen
-    MIN_LEN = args.mnlen
+    MAX_LEN = args.mxlength
+    MIN_LEN = args.mnlength
     CHROM_LEN = args.chromlen
     BPP = args.bpp
     CLUST = args.clust
