@@ -310,10 +310,10 @@ def write_to_bed(fname: str,
             start = gff_dict[k].start
             end = gff_dict[k].end
             if k in k_list:
-                k = 1
+                N = 1
             else:
-                k = 0
-            out_bed.write(f"{chrom}\t{start}\t{end}\t{k}\n")
+                N = 0
+            out_bed.write(f"{chrom}\t{start}\t{end}\t{N}\n")
     return(None)
 
 
