@@ -170,7 +170,6 @@ def format_fasta(fname: str,
     skip_gaps = 0
     loci = 0
     print(f"\nformatting files from alignments\n")
-    import ipdb;ipdb.set_trace()
     while loci <= total_loci:
         pbar.update(loci/total_loci)
         k = f"{fname}_{str(loci)}"
@@ -184,6 +183,8 @@ def format_fasta(fname: str,
         with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
             while gff_dict[k].end <= e_ix:  # loci % clust != 0:
                 k = f"{fname}_{str(loci)}"
+                loci_list = []
+                header_list = []
                 for fasta in fasta_sequences:
                     header, sequence = fasta.id, str(fasta.seq)
                     loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
@@ -203,7 +204,7 @@ def format_fasta(fname: str,
                             out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
                         else:
                             out_file.write(f">{head}\n{seq}\n")
-                    loci += 1
+                loci += 1
     pbar.close()
     print(f"{skip_gaps} regions skipped due to excess N's")
     return(None)
