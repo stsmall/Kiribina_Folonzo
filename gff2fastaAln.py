@@ -241,7 +241,7 @@ def format_fasta(fname: str,
     None
 
     """
-    test = open("overwritten.txt", 'w')
+    test = open(f"{fname}.overwritten.txt", 'w')
     fasta_sequences = list(SeqIO.parse(fasta_file, 'fasta'))
     skip_gaps = 0
     loci = 0
@@ -249,7 +249,7 @@ def format_fasta(fname: str,
     pbar = tqdm(total=total_loci)
     loci_list = []
     header_list = []
-    k_list = []
+    k_dict = {}
     print(f"\n{fname}: formatting files from alignments\n")
     while loci < total_loci:
         while len(loci_list) < clust:
@@ -262,14 +262,15 @@ def format_fasta(fname: str,
                 break
             seqlen = len(loci_l[0])
             # Ns check point
+            miss_list = [(seqX.count("N")/seqlen) for seqX in loci_l]
             if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
                 skip_gaps += 1
             else:
                 loci_list.append(loci_l)
                 header_list.append(header_l)
-                k_list.append(k)
                 if len(loci_list) == 1:
                     s_ix = gff_dict[k].start
+            k_dict[k] = max(miss_list)
             loci += 1
         else:
             e_ix = gff_dict[k].end
@@ -286,13 +287,13 @@ def format_fasta(fname: str,
     pbar.close()
     test.close()
     print(f"\n{fname}: {skip_gaps} regions skipped due to excess N's\n")
-    return(k_list)
+    return(k_dict)
 
 
 def write_to_bed(fname: str,
                  gff_dict: Dict[str, object],
                  chrom: int,
-                 k_list: List[str]):
+                 kdict: Dict[float]):
     """Write the contents of the dicts to file in bed format
 
     Parameters
@@ -314,11 +315,7 @@ def write_to_bed(fname: str,
             k = f"{fname}_{str(i)}"
             start = gff_dict[k].start
             end = gff_dict[k].end
-            if k in k_list:
-                N = 1
-            else:
-                N = 0
-            out_bed.write(f"{chrom}\t{start}\t{end}\t{N}\n")
+            out_bed.write(f"{chrom}\t{start}\t{end}\t{kdict[k]}\n")
     return(None)
 
 
@@ -371,9 +368,9 @@ if __name__ == "__main__":
     CLUST = args.clust
     # CDS
     cds_dict, n_chrom = get_cds(GFF_FILE, MIN_LEN_CDS)
-    klist = format_fasta("cds", cds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
-    write_to_bed("cds", cds_dict, n_chrom, klist)
+    kdict = format_fasta("cds", cds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
+    write_to_bed("cds", cds_dict, n_chrom, kdict)
     # Non-CDS
     ncds_dict = get_ncds(cds_dict, MAX_LEN, MIN_LEN, DIST_BETW, CHROM_LEN)
-    klist = format_fasta("ncds", ncds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
-    write_to_bed("ncds", ncds_dict, n_chrom, klist)
+    kdict = format_fasta("ncds", ncds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
+    write_to_bed("ncds", ncds_dict, n_chrom, kdict)
