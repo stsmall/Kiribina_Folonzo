@@ -108,7 +108,7 @@ def test_formatFasta():
      }
 
     format_fasta("cds", tcds, "test_fastaFile.fa", 5, "3R", 0.5, False, just=10)
-    assert(filecmp.cmp("test_CDS.bpp.3R.5-50.txt", "CDS.bpp.3R.5-50.txt") == True)
+    assert(filecmp.cmp("test_cds.bpp.3R.5-50.txt", "cds.bpp.3R.5-50.txt") == True)
 
 
 if __name__ == "__main__":
