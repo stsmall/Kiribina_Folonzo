@@ -241,6 +241,7 @@ def format_fasta(fname: str,
     None
 
     """
+    test = open("overwritten.txt", 'w')
     fasta_sequences = list(SeqIO.parse(fasta_file, 'fasta'))
     skip_gaps = 0
     loci = 0
@@ -273,14 +274,17 @@ def format_fasta(fname: str,
         else:
             e_ix = gff_dict[k].end
             write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
+            test.write(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt\n")
             loci_list = []
             header_list = []
     if len(loci_list) > 0:
         e_ix = gff_dict[k].end
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
+        test.write(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt\n")
         loci_list = []
         header_list = []
     pbar.close()
+    test.close()
     print(f"\n{fname}: {skip_gaps} regions skipped due to excess N's\n")
     return(k_list)
 
