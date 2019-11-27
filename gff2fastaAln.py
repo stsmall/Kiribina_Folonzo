@@ -364,9 +364,11 @@ if __name__ == "__main__":
     CHROM_LEN = args.chromlen
     BPP = args.bpp
     CLUST = args.clust
+    # CDS
     cds_dict, n_chrom = get_cds(GFF_FILE, MIN_LEN_CDS)
-    format_fasta("cds", cds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
-    write_to_bed("cds", cds_dict, n_chrom)
+    klist = format_fasta("cds", cds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
+    write_to_bed("cds", cds_dict, n_chrom, klist)
+    # Non-CDS
     ncds_dict = get_ncds(cds_dict, MAX_LEN, MIN_LEN, DIST_BETW, CHROM_LEN)
-    format_fasta("ncds", ncds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
-    write_to_bed("ncds", ncds_dict, n_chrom)
+    klist = format_fasta("ncds", ncds_dict, FASTA_FILE, CLUST, n_chrom, PRCT_MISS, BPP)
+    write_to_bed("ncds", ncds_dict, n_chrom, klist)
