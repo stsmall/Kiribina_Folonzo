@@ -257,6 +257,7 @@ def format_fasta(fname: str,
             try:
                 header_l, loci_l = get_fastaseq(fasta_sequences, gff_dict[k])
             except KeyError:
+                k = f"{fname}_{str(loci-1)}"
                 break
             seqlen = len(loci_l[0])
             # Ns check point
@@ -269,10 +270,11 @@ def format_fasta(fname: str,
                 if len(loci_list) == 1:
                     s_ix = gff_dict[k].start
             loci += 1
-        e_ix = gff_dict[k].end
-        write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
-        loci_list = []
-        header_list = []
+        else:
+            e_ix = gff_dict[k].end
+            write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
+            loci_list = []
+            header_list = []
     if len(loci_list) > 0:
         e_ix = gff_dict[k].end
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
