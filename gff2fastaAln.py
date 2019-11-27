@@ -217,11 +217,15 @@ def format_fasta(fname: str,
         if clust_loci % clust == 0:
             e_ix = gff_dict[k].end
             write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
+            loci_list = []
+            header_list = []
             s_ix = None
             clust_loci = 1
     if clust_loci > 1:
         e_ix = gff_dict[k].end
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
+        loci_list = []
+        header_list = []
     print(f"{skip_gaps} regions skipped due to excess N's")
     return(None)
 
