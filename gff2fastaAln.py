@@ -20,10 +20,9 @@ Example
 from Bio import SeqIO
 from dataclasses import dataclass
 from typing import Dict
-from tqdm import tqdm
+from tqdm import trange
 import sys
 import argparse
-import time
 
 
 @dataclass
@@ -130,6 +129,28 @@ def get_ncds(cdsdict: Dict[str, object],
     return(non_cds)
 
 
+def write_outfile(s_ix: str,
+                  e_ix: str,
+                  fname: str,
+                  chrom: str,
+                  bpp: bool,
+                  header_list,
+                  loci_list,
+                  just: int = 10):
+    """Writes outfile for format fasta
+    """
+    with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
+        for item in zip(header_list, loci_list):
+            headers, seqs = item
+            for sample, dna in zip(headers, seqs):
+                if bpp is True:
+                    out_file.write(f"{len(headers)} {len(seqs[0])}\n\n")
+                    out_file.write(f"^{sample}{' '*(just-len(sample))}{dna}\n")
+                else:
+                    out_file.write(f">{sample}\n{dna}\n")
+    return(None)
+
+
 def format_fasta(fname: str,
                  gff_dict: Dict[str, object],
                  fasta_file: str,
@@ -165,53 +186,39 @@ def format_fasta(fname: str,
     None
 
     """
-    total_loci = len(gff_dict)
-    pbar = tqdm(total=total_loci)
     fasta_sequences = list(SeqIO.parse(fasta_file, 'fasta'))
     skip_gaps = 0
-    loci = 0
+    clust_loci = 1
+    loci_list = []
+    header_list = []
+    s_ix = None
     print(f"\nformatting files from alignments\n")
-    while loci <= total_loci:
+    for loci in trange(len(gff_dict)):
         k = f"{fname}_{str(loci)}"
-        loci_list = []
-        header_list = []
-        clust_loci = 0
-        try:
-            s_ix = gff_dict[k].start
-            e_ix = gff_dict[f"{fname}_{loci + clust-1}"].end
-        except KeyError:
-            e_ix = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
-        with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
-            try:
-                while gff_dict[k].end <= e_ix:  # loci % clust != 0:
-                    pbar.update(1)
-                    for fasta in fasta_sequences:
-                        header, sequence = fasta.id, str(fasta.seq)
-                        loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
-                        header_list.append(header)
-                    samples = len(header_list)
-                    seqlen = len(loci_list[0])
-                    # Ns check point
-                    if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
-                        skip_gaps += 1
-                    else:
-                        if bpp is True:
-                            out_file.write(f"{samples} {seqlen}\n\n")
-                        else:
-                            out_file.write(f"\n")
-                        for head, seq in zip(header_list, loci_list):
-                            if bpp is True:
-                                out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
-                            else:
-                                out_file.write(f">{head}\n{seq}\n")
-                        clust_loci += 1
-                    loci += 1
-                    k = f"{fname}_{str(loci)}"
-                    loci_list = []
-                    header_list = []
-            except KeyError:
-                break
-    pbar.close()
+        header_l = []
+        loci_l = []
+        for fasta in fasta_sequences:
+            header, sequence = fasta.id, str(fasta.seq)
+            loci_l.append(sequence[gff_dict[k].start:gff_dict[k].end])
+            header_l.append(header)
+        seqlen = len(loci_l[0])
+        # Ns check point
+        if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
+            skip_gaps += 1
+        else:
+            clust_loci += 1
+            loci_list.append(loci_l)
+            header_list.append(header_l)
+            if s_ix is None:
+                s_ix = gff_dict[k].start
+        if clust_loci % clust == 0:
+            e_ix = gff_dict[k].end
+            write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
+            s_ix = None
+            clust_loci = 1
+    if clust_loci > 1:
+        e_ix = gff_dict[k].end
+        write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
     print(f"{skip_gaps} regions skipped due to excess N's")
     return(None)
 
