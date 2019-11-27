@@ -206,7 +206,7 @@ def format_fasta(fname: str,
             header_l.append(header)
         seqlen = len(loci_l[0])
         # Ns check point
-        if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
+        if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
             skip_gaps += 1
         else:
             clust_loci += 1
