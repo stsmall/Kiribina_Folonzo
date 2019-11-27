@@ -293,7 +293,7 @@ def format_fasta(fname: str,
 def write_to_bed(fname: str,
                  gff_dict: Dict[str, object],
                  chrom: int,
-                 kdict: Dict[float]):
+                 kdict: Dict[str, float]):
     """Write the contents of the dicts to file in bed format
 
     Parameters
