@@ -251,29 +251,28 @@ def format_fasta(fname: str,
     k_list = []
     print(f"\n{fname}: formatting files from alignments\n")
     while loci <= total_loci:
-        while len(loci_list) < clust:
-            pbar.update(1)
-            k = f"{fname}_{str(loci)}"
-            try:
+        try:
+            while len(loci_list) < clust:
+                pbar.update(1)
+                k = f"{fname}_{str(loci)}"
                 header_l, loci_l = get_fastaseq(fasta_sequences, gff_dict[k])
-            except KeyError:
-                continue
-            seqlen = len(loci_l[0])
-            # Ns check point
-            if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
-                skip_gaps += 1
-            else:
-                loci_list.append(loci_l)
-                header_list.append(header_l)
-                k_list.append(k)
-                if len(loci_list) == 1:
-                    s_ix = gff_dict[k].start
-            loci += 1
-        else:
+                seqlen = len(loci_l[0])
+                # Ns check point
+                if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
+                    skip_gaps += 1
+                else:
+                    loci_list.append(loci_l)
+                    header_list.append(header_l)
+                    k_list.append(k)
+                    if len(loci_list) == 1:
+                        s_ix = gff_dict[k].start
+                loci += 1
             e_ix = gff_dict[k].end
             write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
             loci_list = []
             header_list = []
+        except KeyError:
+            break
     if len(loci_list) > 0:
         e_ix = gff_dict[k].end
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
