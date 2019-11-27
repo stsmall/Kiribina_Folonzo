@@ -1,39 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Nov 20 15:51:27 2019
 @author: Scott T. Small
 
-?can github run tests and check coverage upon push?
+pytest -s FOO.py  # captures so can use ipdb.set_trace()
 
-unit testing for functions
+pytest --test-this=test_bar FOO.py
 
-# main unit testing
-conda install -c anaconda pytest
-
-# allows use in spyder
-conda install -c spyder-ide spyder-unittest
-
-# tests code against versions of python and modules
-conda install -c conda-forge tox
-
-# tests assertions beyond listed
-conda install -c conda-forge hypothesis
-
-# how much of application is tested by unit tests
-conda install -c anaconda coverage
-
-# mock values useful for multi-level testing where func is dependent on another
-# MagicMock
-conda install mock
-
-# decorator with pytest to avoid loading heavy examples
-@pytest.fixture(scope='module')
-pytest.raises(RuntimeError)
-pytest.warns(RuntimeWarning)
-    warnings.warn("")
-
-**Note**
+conftest.py
+    mock, auto-mock
+    fixtures
+    property testing
+    hypothesis, hypothesis-auto
+    pydantic types
 
 """
 
