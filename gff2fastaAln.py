@@ -142,9 +142,12 @@ def write_outfile(s_ix: str,
     with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
         for item in zip(header_list, loci_list):
             headers, seqs = item
+            if bpp is True:
+                out_file.write(f"{len(headers)} {len(seqs[0])}\n\n")
+            else:
+                out_file.write("\n")
             for sample, dna in zip(headers, seqs):
                 if bpp is True:
-                    out_file.write(f"{len(headers)} {len(seqs[0])}\n\n")
                     out_file.write(f"^{sample}{' '*(just-len(sample))}{dna}\n")
                 else:
                     out_file.write(f">{sample}\n{dna}\n")
