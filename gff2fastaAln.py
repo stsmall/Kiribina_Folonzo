@@ -171,7 +171,7 @@ def format_fasta(fname: str,
     loci = 0
     print(f"\nformatting files from alignments\n")
     while loci <= total_loci:
-        pbar.update(loci/total_loci)
+        pbar.update(loci)
         k = f"{fname}_{str(loci)}"
         loci_list = []
         header_list = []
