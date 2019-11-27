@@ -181,30 +181,33 @@ def format_fasta(fname: str,
         except KeyError:
             e_ix = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
         with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
-            while gff_dict[k].end <= e_ix:  # loci % clust != 0:
-                k = f"{fname}_{str(loci)}"
-                loci_list = []
-                header_list = []
-                for fasta in fasta_sequences:
-                    header, sequence = fasta.id, str(fasta.seq)
-                    loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
-                    header_list.append(header)
-                samples = len(header_list)
-                seqlen = len(loci_list[0])
-                # Ns check point
-                if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
-                    skip_gaps += 1
-                else:
-                    if bpp is True:
-                        out_file.write(f"{samples} {seqlen}\n\n")
+            try:
+                while gff_dict[k].end <= e_ix:  # loci % clust != 0:
+                    for fasta in fasta_sequences:
+                        header, sequence = fasta.id, str(fasta.seq)
+                        loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
+                        header_list.append(header)
+                    samples = len(header_list)
+                    seqlen = len(loci_list[0])
+                    # Ns check point
+                    if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
+                        skip_gaps += 1
                     else:
-                        out_file.write(f"\n")
-                    for head, seq in zip(header_list, loci_list):
                         if bpp is True:
-                            out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
+                            out_file.write(f"{samples} {seqlen}\n\n")
                         else:
-                            out_file.write(f">{head}\n{seq}\n")
-                loci += 1
+                            out_file.write(f"\n")
+                        for head, seq in zip(header_list, loci_list):
+                            if bpp is True:
+                                out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
+                            else:
+                                out_file.write(f">{head}\n{seq}\n")
+                    loci += 1
+                    k = f"{fname}_{str(loci)}"
+                    loci_list = []
+                    header_list = []
+            except KeyError:
+                break
     pbar.close()
     print(f"{skip_gaps} regions skipped due to excess N's")
     return(None)
