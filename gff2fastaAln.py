@@ -280,6 +280,7 @@ def format_fasta(fname: str,
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
         loci_list = []
         header_list = []
+    pbar.close()
     print(f"\n{fname}: {skip_gaps} regions skipped due to excess N's\n")
     return(k_list)
 
