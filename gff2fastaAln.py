@@ -195,7 +195,7 @@ def format_fasta(fname: str,
     loci_list = []
     header_list = []
     s_ix = None
-    print(f"\nformatting files from alignments\n")
+    print(f"\n{fname}: formatting files from alignments\n")
     for loci in trange(len(gff_dict)):
         k = f"{fname}_{str(loci)}"
         header_l = []
@@ -226,7 +226,7 @@ def format_fasta(fname: str,
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
         loci_list = []
         header_list = []
-    print(f"{skip_gaps} regions skipped due to excess N's")
+    print(f"\n{fname}: {skip_gaps} regions skipped due to excess N's\n")
     return(None)
 
 
