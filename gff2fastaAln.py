@@ -23,6 +23,7 @@ from typing import Dict
 from tqdm import tqdm
 import sys
 import argparse
+import time
 
 
 @dataclass
@@ -171,10 +172,10 @@ def format_fasta(fname: str,
     loci = 0
     print(f"\nformatting files from alignments\n")
     while loci <= total_loci:
-        pbar.update(loci)
         k = f"{fname}_{str(loci)}"
         loci_list = []
         header_list = []
+        clust_loci = 0
         try:
             s_ix = gff_dict[k].start
             e_ix = gff_dict[f"{fname}_{loci + clust-1}"].end
@@ -183,6 +184,7 @@ def format_fasta(fname: str,
         with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
             try:
                 while gff_dict[k].end <= e_ix:  # loci % clust != 0:
+                    pbar.update(1)
                     for fasta in fasta_sequences:
                         header, sequence = fasta.id, str(fasta.seq)
                         loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
@@ -202,6 +204,7 @@ def format_fasta(fname: str,
                                 out_file.write(f"^{head}{' '*(just-len(head))}{seq}\n")
                             else:
                                 out_file.write(f">{head}\n{seq}\n")
+                        clust_loci += 1
                     loci += 1
                     k = f"{fname}_{str(loci)}"
                     loci_list = []
