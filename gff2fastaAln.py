@@ -170,6 +170,7 @@ def format_fasta(fname: str,
     skip_gaps = 0
     loci = 0
     print(f"\nformatting files from alignments\n")
+    import ipdb;ipdb.set_trace()
     while loci <= total_loci:
         pbar.update(loci/total_loci)
         k = f"{fname}_{str(loci)}"
