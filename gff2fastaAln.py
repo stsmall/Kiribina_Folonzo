@@ -19,8 +19,8 @@ Example
 
 from Bio import SeqIO
 from dataclasses import dataclass
-from typing import Dict
-from tqdm import trange
+from typing import Dict, List
+from tqdm import tqdm
 import sys
 import argparse
 
@@ -129,8 +129,8 @@ def get_ncds(cdsdict: Dict[str, object],
     return(non_cds)
 
 
-def write_outfile(s_ix: str,
-                  e_ix: str,
+def write_outfile(s_ix: int,
+                  e_ix: int,
                   fname: str,
                   chrom: str,
                   bpp: bool,
@@ -138,6 +138,30 @@ def write_outfile(s_ix: str,
                   loci_list,
                   just: int = 10):
     """Writes outfile for format fasta
+
+    Parameters
+    ----------
+    s_ix: int
+        start coordinates
+    e_ix: int
+        end coordinates
+    fname: str
+        cds or ncds
+    chrom: str
+        chromosome name
+    bpp: bool
+        format for BPP True or False
+    header_list: List[List[str]]
+        lists of headers from fasta for each locus
+    loci_list: List[List[str]]
+        list of sequences from fasta for each locus
+    just: int
+        justified for BPP
+
+    Returns
+    -------
+    None
+
     """
     with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
         for item in zip(header_list, loci_list):
@@ -152,6 +176,34 @@ def write_outfile(s_ix: str,
                 else:
                     out_file.write(f">{sample}\n{dna}\n")
     return(None)
+
+
+def get_fastaseq(fasta_sequences,
+                 locus_k):
+    """Retrieves sequence from fasta file by coordinates
+
+    Parameters
+    ----------
+    fasta_sequences: obj of SeqIO
+        contains fasta sequences and headers
+    locus_k: obj of dataclass
+        contains start and end coordinates for loci
+
+    Returns
+    -------
+    header_l: list[str]
+        list of headers from fasta
+    loci_l: list[str]
+        list of sequences from fasta
+
+    """
+    header_l = []
+    loci_l = []
+    for fasta in fasta_sequences:
+        header, sequence = fasta.id, str(fasta.seq)
+        loci_l.append(sequence[locus_k.start:locus_k.end])
+        header_l.append(header)
+    return(header_l, loci_l)
 
 
 def format_fasta(fname: str,
@@ -191,48 +243,47 @@ def format_fasta(fname: str,
     """
     fasta_sequences = list(SeqIO.parse(fasta_file, 'fasta'))
     skip_gaps = 0
-    clust_loci = 1
+    loci = 0
+    total_loci = len(gff_dict)
+    pbar = tqdm(total=total_loci)
     loci_list = []
     header_list = []
-    s_ix = None
+    k_list = []
     print(f"\n{fname}: formatting files from alignments\n")
-    for loci in trange(len(gff_dict)):
-        k = f"{fname}_{str(loci)}"
-        header_l = []
-        loci_l = []
-        for fasta in fasta_sequences:
-            header, sequence = fasta.id, str(fasta.seq)
-            loci_l.append(sequence[gff_dict[k].start:gff_dict[k].end])
-            header_l.append(header)
-        seqlen = len(loci_l[0])
-        # Ns check point
-        if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
-            skip_gaps += 1
+    while loci <= total_loci:
+        while len(loci_list) < clust:
+            pbar.update(1)
+            k = f"{fname}_{str(loci)}"
+            header_l, loci_l = get_fastaseq(fasta_sequences, gff_dict[k])
+            seqlen = len(loci_l[0])
+            # Ns check point
+            if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
+                skip_gaps += 1
+            else:
+                loci_list.append(loci_l)
+                header_list.append(header_l)
+                k_list.append(k)
+                if len(loci_list) == 1:
+                    s_ix = gff_dict[k].start
+            loci += 1
         else:
-            clust_loci += 1
-            loci_list.append(loci_l)
-            header_list.append(header_l)
-            if s_ix is None:
-                s_ix = gff_dict[k].start
-        if clust_loci % clust == 0:
             e_ix = gff_dict[k].end
             write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
             loci_list = []
             header_list = []
-            s_ix = None
-            clust_loci = 1
-    if clust_loci > 1:
+    if len(loci_list) > 0:
         e_ix = gff_dict[k].end
         write_outfile(s_ix, e_ix, fname, chrom, bpp, header_list, loci_list)
         loci_list = []
         header_list = []
     print(f"\n{fname}: {skip_gaps} regions skipped due to excess N's\n")
-    return(None)
+    return(k_list)
 
 
 def write_to_bed(fname: str,
                  gff_dict: Dict[str, object],
-                 chrom: int):
+                 chrom: int,
+                 k_list: List[str]):
     """Write the contents of the dicts to file in bed format
 
     Parameters
@@ -251,9 +302,14 @@ def write_to_bed(fname: str,
     with open(f"{fname}.bed", 'w') as out_bed:
         print(f"writing to bed files\n")
         for i in range(len(gff_dict)):
-            start = gff_dict[f"{fname}_{i}"].start
-            end = gff_dict[f"{fname}_{i}"].end
-            out_bed.write(f"{chrom}\t{start}\t{end}\n")
+            k = f"{fname}_{str(i)}"
+            start = gff_dict[k].start
+            end = gff_dict[k].end
+            if k in k_list:
+                k = 1
+            else:
+                k = 0
+            out_bed.write(f"{chrom}\t{start}\t{end}\t{k}\n")
     return(None)
 
 
