@@ -257,7 +257,7 @@ def format_fasta(fname: str,
             try:
                 header_l, loci_l = get_fastaseq(fasta_sequences, gff_dict[k])
             except KeyError:
-                break
+                continue
             seqlen = len(loci_l[0])
             # Ns check point
             if any((seqX.count("N")/seqlen) > prct for seqX in loci_l):
