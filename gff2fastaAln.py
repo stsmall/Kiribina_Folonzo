@@ -20,7 +20,7 @@ Example
 from Bio import SeqIO
 from dataclasses import dataclass
 from typing import Dict
-from tqdm import trange
+from tqdm import tqdm
 import sys
 import argparse
 
@@ -126,21 +126,6 @@ def get_ncds(cdsdict: Dict[str, object],
             if (end - start) >= mnlen:
                 non_cds[f"ncds_{loci}"] = CDS(start, end)
                 loci += 1
-
-#    # end of chrom
-#    nstart = end
-#    nend = end + mxlen
-#    if nend < chromlen:
-#        while nend < chromlen:
-#            non_cds[f"ncds_{loci}"] = CDS(nstart, nend)
-#            nstart += distance
-#            nend = nstart + mxlen
-#            loci += 1
-#        if (chromlen - nstart) >= mnlen:
-#            non_cds[f"ncds_{loci}"] = CDS(nstart, end)
-#    else:
-#        if (chromlen - end) >= mnlen:
-#            non_cds[f"ncds_{loci}"] = CDS(end, chromlen)
     return(non_cds)
 
 
@@ -179,41 +164,33 @@ def format_fasta(fname: str,
     None
 
     """
-
+    total_loci = len(gff_dict)
+    pbar = tqdm(total=total_loci)
     fasta_sequences = list(SeqIO.parse(fasta_file, 'fasta'))
     skip_gaps = 0
     loci = 0
-    s = gff_dict[f"{fname}_0"].start
-    try:
-        e = gff_dict[f"{fname}_{clust-1}"].end
-    except KeyError:
-        e = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
-    out_file = open(f"{fname}.bpp.{chrom}.{s}-{e}.txt", 'w')
-    print(f"formatting files from alignments\n")
-    for i in trange(len(gff_dict)):
-        k = f"{fname}_{str(i)}"
+    print(f"\nformatting files from alignments\n")
+    while loci <= total_loci:
+        pbar.update(loci/total_loci)
+        k = f"{fname}_{str(loci)}"
         loci_list = []
         header_list = []
-        if loci >= clust:
-            out_file.close()
-            try:
-                s = gff_dict[k].start
-                e = gff_dict[f"{fname}_{i + clust-1}"].end
-            except KeyError:
-                e = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
-            out_file = open(f"{fname}.bpp.{chrom}.{s}-{e}.txt", 'w')
-            loci = 0
-        else:
-            for fasta in fasta_sequences:
-                header, sequence = fasta.id, str(fasta.seq)
-                loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
-                header_list.append(header)
-            samples = len(header_list)
-            seqlen = len(loci_list[0])
-            # Ns check point
-            try:
+        try:
+            s_ix = gff_dict[k].start
+            e_ix = gff_dict[f"{fname}_{loci + clust-1}"].end
+        except KeyError:
+            e_ix = gff_dict[f"{fname}_{len(gff_dict)-1}"].end
+        with open(f"{fname}.bpp.{chrom}.{s_ix}-{e_ix}.txt", 'w') as out_file:
+            while gff_dict[k].end <= e_ix:  # loci % clust != 0:
+                k = f"{fname}_{str(loci)}"
+                for fasta in fasta_sequences:
+                    header, sequence = fasta.id, str(fasta.seq)
+                    loci_list.append(sequence[gff_dict[k].start:gff_dict[k].end])
+                    header_list.append(header)
+                samples = len(header_list)
+                seqlen = len(loci_list[0])
+                # Ns check point
                 if any((seqX.count("N")/seqlen) > prct for seqX in loci_list):
-                    # print("skipping, too many Ns")
                     skip_gaps += 1
                 else:
                     if bpp is True:
@@ -226,9 +203,7 @@ def format_fasta(fname: str,
                         else:
                             out_file.write(f">{head}\n{seq}\n")
                     loci += 1
-            except ZeroDivisionError:
-                import ipdb; ipdb.set_trace()
-    out_file.close()
+    pbar.close()
     print(f"{skip_gaps} regions skipped due to excess N's")
     return(None)
 
