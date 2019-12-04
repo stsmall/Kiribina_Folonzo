@@ -148,13 +148,8 @@ def parse_args(args):
     return(parser.parse_args(args))
 
 
-def main(arg_in):
-    args = parse_args(arg_in)
-    return(args)
-
-
 if __name__ == "__main__":
-    args = main(sys.argv[1:])
+    args = parse_args(sys.argv[1:])
     TREES = args.trees
     CLUST = args.clust
     EXE = args.astral_exe
