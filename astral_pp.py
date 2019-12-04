@@ -25,7 +25,7 @@ Notes
     will be a species tree with 1 leaf per species.
 """
 import argparse
-import path
+from os import path
 import subprocess
 import sys
 
