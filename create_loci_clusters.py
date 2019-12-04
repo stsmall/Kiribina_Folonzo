@@ -19,7 +19,8 @@ Notes
 
 The file name is expected to carry information.
 2L.cds.102218-102369.aln.33.fa
-$chrom.$cds_type.$coords.
+
+$chrom.$cds_type.$coords
 
 """
 import argparse
@@ -209,8 +210,6 @@ def cluster_alnments(file_list: List[str],
     None
 
     """
-    pbar = tqdm(total=len(file_list))
-
     if map_file:
         map_dict = {}
         with open(map_file, "r") as new_ids:
@@ -226,7 +225,6 @@ def cluster_alnments(file_list: List[str],
     s_ix = 0
     e_ix = cluster
     while (e_ix < len(lsorted)):
-        pbar.update(cluster)
         clust_files = lsorted[s_ix:e_ix]
         chrom, cds_type = write_to_clust(aln_path, clust_files, map_dict, bpp)
         s_ix = e_ix
@@ -236,7 +234,6 @@ def cluster_alnments(file_list: List[str],
         e_ix = len(lsorted)
         clust_files = lsorted[s_ix:e_ix]
         chrom, cds_type = write_to_clust(aln_path, clust_files, map_dict, bpp)
-    pbar.close()
     return (chrom, cds_type)
 
 
@@ -272,7 +269,7 @@ def make_bpp(chrom: str,
                     elif line.startswith("outfile"):
                         f.write(f"outfile = bpp.{out_file}.out\n")
                     elif line.startswith("mcmcfile"):
-                        f.write("mcmcfile = bpp.{out_file}.msmc.txt\n")
+                        f.write(f"mcmcfile = bpp.{out_file}.msmc.txt\n")
                     elif line.startswith("nloci"):
                         f.write(f"nloci = {loci_count}\n")
                     else:
@@ -290,14 +287,14 @@ def parse_args(args_in):
                         help="format of alignment file, fasta or phylip")
     parser.add_argument("--cluster", type=int, default=100,
                         help="how many loci to cluster in sinlge file")
+    parser.add_argument("--convert", action="store_true",
+                        help="convert fa to phy")
     parser.add_argument("--bpp", action="store_true",
                         help="make clusters for BPP program, requires example control file")
     parser.add_argument("--control_file", type=str,
                         help="control file for BPP")
     parser.add_argument("--map_file", type=str,
                         help="map file for changing IDs")
-    parser.add_argument("--convert", action="store_true",
-                        help="convert fa to phy")
     return (parser.parse_args(args_in))
 
 
