@@ -18,9 +18,9 @@ Notes
 -----
 
 The file name is expected to carry information.
-2L.cds.102218-102369.aln.33.fa
 
-$chrom.$cds_type.$coords
+$chrom.$cds_type.$coords.aln.33.fa = 2L.cds.102218-102369.aln.33.fa
+
 
 """
 import argparse
@@ -269,7 +269,7 @@ def make_bpp(chrom: str,
                     elif line.startswith("outfile"):
                         f.write(f"outfile = bpp.{out_file}.out\n")
                     elif line.startswith("mcmcfile"):
-                        f.write(f"mcmcfile = bpp.{out_file}.msmc.txt\n")
+                        f.write(f"mcmcfile = bpp.{out_file}.mcmc.txt\n")
                     elif line.startswith("nloci"):
                         f.write(f"nloci = {loci_count}\n")
                     else:

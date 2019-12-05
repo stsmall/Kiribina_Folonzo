@@ -23,6 +23,14 @@ Notes
     program twisst (Simon Martin) to represent the topologies along the
     chromosome. Alternately, if you set [groups] and [outgroup] the output
     will be a species tree with 1 leaf per species.
+
+    ls -1v *.bestTree | cut -d"." -f4 > ../2L.cds.windows.txt
+
+    for i in $( ls -1v *.bestTree);do
+    cat $i >> 2L.cds.trees
+    done
+
+
 """
 import argparse
 from os import path
