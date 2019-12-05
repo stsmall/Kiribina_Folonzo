@@ -24,7 +24,7 @@ Notes
     chromosome. Alternately, if you set [groups] and [outgroup] the output
     will be a species tree with 1 leaf per species.
 
-    ls -1v *.bestTree | cut -d"." -f4 > ../2L.cds.windows.txt
+    ls -1v *.bestTree | cut -d"." -f4 > ../2L.cds.coords.txt
 
     for i in $( ls -1v *.bestTree);do
     cat $i >> 2L.cds.trees
