@@ -168,16 +168,19 @@ if __name__ == "__main__":
     run_astral(TREES, CLUST, EXE, GROUPS)
     make_windows(COORD, CLUST, SCAF)
     # reroot using newick utils
-    NEWICK_UTILS = "~/programs_that_work/newick-utils-1.6/src"
+    NEWICK_UTILS_PATH = "~/programs_that_work/newick-utils-1.6/src/nw_reroot"
     if OUT:
-        if path.exists(NEWICK_UTILS):
-            command = f"{NEWICK_UTILS}/nw_reroot astral.tre {OUT} > {SCAF}.astral.{CLUST}.tre"
+        if path.isfile(NEWICK_UTILS_PATH):
+            command = f"{NEWICK_UTILS_PATH} {OUT} > {SCAF}.astral.{CLUST}.rooted.tre"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
         else:
             f"no newick-utils found in path, not rooting!!!!!"
+            command = f"mv astral.tre {SCAF}.astral.{CLUST}.unrooted.tre"
+            proc = subprocess.Popen(command, shell=True)
+            proc.wait()
     else:
-        command = f"mv astral.tre {SCAF}.astral.{CLUST}.tre"
+        command = f"mv astral.tre {SCAF}.astral.{CLUST}.unrooted.tre"
         proc = subprocess.Popen(command, shell=True)
         proc.wait()
     proc = subprocess.Popen(f"rm -f astral.out astral_tmp.tre", shell=True)
