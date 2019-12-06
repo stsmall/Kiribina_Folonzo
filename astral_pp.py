@@ -171,7 +171,7 @@ if __name__ == "__main__":
     NEWICK_UTILS_PATH = "/afs/crc.nd.edu/user/s/ssmall2/programs_that_work/newick-utils-1.6/src/nw_reroot"
     if OUT:
         if path.exists(NEWICK_UTILS_PATH):
-            command = f"{NEWICK_UTILS_PATH} {OUT} > {SCAF}.astral.{CLUST}.rooted.tre"
+            command = f"{NEWICK_UTILS_PATH} astral.tre {OUT} > {SCAF}.astral.{CLUST}.rooted.tre"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
         else:
