@@ -149,6 +149,7 @@ def write_to_clust(aln_path: str,
     last_file = clust_files[-1]
     chrom = first_file.split(".")[0]
     cds_type = first_file.split(".")[1]
+    assert (cds_type.isalpha() is True), "check file name, expects : $chrom.$cds_type.$coords.aln.33.fa"
     start = re.findall(r"[\.\-]?([0-9]+)[\.\-]", first_file)[0]
     end = re.findall(r"[\.\-]?([0-9]+)[\.\-]", last_file)[1]
     with open(f"{chrom}.{cds_type}.{start}-{end}.{count}.txt", "w") as f:
@@ -259,6 +260,8 @@ def make_bpp(chrom: str,
     clust_files = glob.glob(f"{chrom}.{cds_type}*.txt")
     for loci in clust_files:
         coords = loci.split(".")[2]
+        assert (coords.split("-")[0].isdigit() is True), "check file name, expects : $chrom.$cds_type.$coords.aln.33.fa"
+
         loci_count = loci.split(".")[-2]
         out_file = f"{chrom}.{cds_type}.{coords}"
         with open(f"A01.bpp.{out_file}.ctl", "w") as f:
