@@ -168,6 +168,7 @@ if __name__ == "__main__":
     run_astral(TREES, CLUST, EXE, GROUPS)
     make_windows(COORD, CLUST, SCAF)
     # reroot using newick utils
+    breakpoint()
     NEWICK_UTILS_PATH = "~/programs_that_work/newick-utils-1.6/src/nw_reroot"
     if OUT:
         if path.isfile(NEWICK_UTILS_PATH):
