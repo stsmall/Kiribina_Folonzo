@@ -44,7 +44,6 @@ def scrape_bpp(prefix: str,
     weights_ddict = defaultdict(dict)
     for sc in scafs:
         file_list = glob.glob(f"{prefix}{sc}*{suffix}")
-        breakpoint()
         for bpp_out in file_list:
             coord = re.search(r"([0-9]+-[0-9]+)", bpp_out).group()
             start, stop = coord.split("-")
@@ -109,7 +108,7 @@ def write_weights(weights_ddict, topo_list):
 def parse_args(args_in):
     parser = argparse.ArgumentParser(prog="sys.argv[0].py",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-p', "--prefix",
+    parser.add_argument('-p', "--prefix", default="",
                         help="prefix of input file")
     parser.add_argument('-s', "--suffix", default=".out",
                         help="suffix of input file")
