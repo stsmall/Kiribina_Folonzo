@@ -108,9 +108,9 @@ def write_weights(weights_ddict, topo_list):
 def parse_args(args_in):
     parser = argparse.ArgumentParser(prog="sys.argv[0].py",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-p', "--prefix", required=True,
+    parser.add_argument('-p', "--prefix",
                         help="prefix of input file")
-    parser.add_argument('-s', "--suffix", required=True,
+    parser.add_argument('-s', "--suffix", default=".out",
                         help="suffix of input file")
     parser.add_argument("--scafs", required=True, nargs='+', action="append",
                         help="scaffold or chromosome")
