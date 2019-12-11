@@ -12,6 +12,7 @@ import sys
 import argparse
 import glob
 from collections import defaultdict
+from collections import Counter
 import re
 
 
@@ -82,6 +83,10 @@ def write_weights(weights_ddict, topo_list):
     """
     topo_file = open("topos.out", "w")
     topo_set = list(set(topo_list))
+    topo_freq = Counter(topo_list)
+    with open("topo_freq.out", 'w') as tf:
+        for topo in topo_freq.keys():
+            tf.write(f"{topo}\t{topo_list.index(topo)}\t{topo_freq[topo]}\n")
     topo_header = ""
     topo_count = len(topo_set)
     for i, topo in enumerate(topo_set):
