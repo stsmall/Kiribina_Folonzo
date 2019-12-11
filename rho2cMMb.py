@@ -75,8 +75,8 @@ https://doi.org/10.1534/genetics.105.044800
 
 
 """
-import sys
 import argparse
+import sys
 
 
 def read_helmet(helm_file):
@@ -98,8 +98,8 @@ def read_helmet(helm_file):
     snp_list = []
     rho_list = []
     with open(helm_file) as rhomap:
-        for line in rhomap:
-            if line.split()[0].isdigit():
+        for nline in rhomap:
+            if nline.split()[0].isdigit():
                 for line in rhomap:
                     try:
                         x = line.split()
@@ -109,7 +109,7 @@ def read_helmet(helm_file):
                         rho_list.append(float(rho))
                     except ValueError:
                         continue
-    return (snp_list, rho_list)
+    return snp_list, rho_list
 
 
 def read_jump(jump_file):
@@ -171,7 +171,7 @@ def read_ismc(ismc_file):
                 rho_list.append(rho)
             except ValueError:
                 continue
-    return (snp_list, rho_list)
+    return snp_list, rho_list
 
 
 def write_recomb(pos_list, cMMb_list, cM_list):
@@ -234,13 +234,13 @@ def recomb_map(snp_list, rho_list, Ne, map_size):
         pos_list.append(pos)
         cMMb_rho = rho_list[i] * cMMb_avg  # average rate from Chan 2012
         cMMb_list.append(cMMb_rho)  # rate between SNPs
-        if i == 0:
+        if (i == 0):
             cM += (cMMb_rho * (pos)) / map_size
             # cumRho += (pos * rholist[i])/size
         else:
             cM += (cMMb_rho * (pos - snp_list[i-1])) / map_size
         cM_list.append(cM)
-    return (pos_list, cMMb_list, cM_list)
+    return pos_list, cMMb_list, cM_list
 
 
 def recomb_map_booker(snp_list, rho_list, map_size):
@@ -290,7 +290,7 @@ def recomb_map_booker(snp_list, rho_list, map_size):
         else:
             cMMb_list.append(((prho_snp - prho_list[i-1]) * map_size) /
                              ((snp_list[i] - snp_list[i-1])/1E6))
-    return (pos_list, cMMb_list, cM_list)
+    return pos_list, cMMb_list, cM_list
 
 
 def parse_args(args_in):
@@ -300,12 +300,12 @@ def parse_args(args_in):
     parser.add_argument("--map_size", type=float, default=1,
                         help="chrom map size else will use prop of total rho")
     parser.add_argument("--format", type=str, required=True,
-                        choices=("ldhelm", "ldjump", "iSMC", "reLerrn"),
+                        choices=("LDhelmet", "LDJump", "iSMC", "ReLERNN"),
                         help="format of LD file")
     parser.add_argument("--EffectivePopSize", type=int)
     parser.add_argument("--booker", action="store_true",
                         help="use method in Booker et al. 2017")
-    return(parser.parse_args(args_in))
+    return (parser.parse_args(args_in))
 
 
 if __name__ == "__main__":
@@ -321,17 +321,17 @@ if __name__ == "__main__":
     # =========================================================================
     #  Main executions
     # =========================================================================
-    if FORMAT == "ldhelm":
-        snp, rho = read_helmet(LD_FILE)
-    elif FORMAT == "ldjump":
-        snp, rho = read_jump(LD_FILE)
+    if FORMAT == "LDhelmet":
+        SNP_LIST, RHO_LIST = read_helmet(LD_FILE)
+    elif FORMAT == "LDJump":
+        SNP_LIST, RHO_LIST = read_jump(LD_FILE)
     elif FORMAT == "iSMC":
-        snp, rho = read_ismc(LD_FILE)
-    elif FORMAT == "ReLerrn":
+        SNP_LIST, RHO_LIST = read_ismc(LD_FILE)
+    elif FORMAT == "ReLERNN":
         pass
-        # s, r = read_relernn(LD_FILE)
+        # SNP_LIST, RHO_LIST = read_relernn(LD_FILE)
     if BOOKER is True:
-        pos_list, cMMb_list, cM_list = recomb_map_booker(snp, rho, MAP_SIZE)
+        POS_LIST, CMMB_LIST, CM_LIST = recomb_map_booker(SNP_LIST, RHO_LIST, MAP_SIZE)
     else:
-        pos_list, cMMb_list, cM_list = recomb_map(snp, rho, NE, MAP_SIZE)
-    write_recomb(pos_list, cMMb_list, cM_list)
+        POS_LIST, CMMB_LIST, CM_LIST = recomb_map(SNP_LIST, RHO_LIST, NE, MAP_SIZE)
+    write_recomb(POS_LIST, CMMB_LIST, CM_LIST)
