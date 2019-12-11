@@ -45,32 +45,32 @@ def scrape_bpp(prefix: str,
     for sc in scafs:
         file_list = glob.glob(f"{prefix}{sc}*{suffix}")
         for bpp_out in file_list:
-            coord = bpp_out.replace(prefix, "").replace(suffix, "")
-            scaf, start, stop = re.findall(r'\w+', coord)
+            coord = re.search(r"([0-9]+-[0-9]+)", bpp_out).group()
+            start, stop = coord.split("-")
             keycoord = f"{sc}:{start}-{stop}"
             with open(bpp_out, "r") as bpp:
                 for line in bpp:
                     if line.startswith("(A)"):
-                        for line in bpp:
-                            if line.strip() == "":
+                        for line_a in bpp:
+                            if line_a.strip() == "":
                                 break
                             else:
                                 x = line.split()
                                 topo = "".join(x[3:])
                                 if chain > 0:
-                                    weightsDict[keycoord][topo] = float(x[1]) * chain
+                                    weights_ddict[keycoord][topo] = float(x[1]) * chain
                                 else:
-                                    weightsDict[keycoord][topo] = float(x[1])
-                                topoList.append(topo)
-    return (weights_dict, topo_list)
+                                    weights_ddict[keycoord][topo] = float(x[1])
+                                topo_list.append(topo)
+    return weights_ddict, topo_list
 
 
-def write_weights(weights_dict, topo_list):
+def write_weights(weights_ddict, topo_list):
     """Write weights in stype similar to twisst output
 
     Parameters
     ----------
-    weights_dict: default(dict)
+    weights_ddict: default(dict)
         coords, topo, weights
     topo_list: List[str]
         list of topos found in the file
@@ -90,18 +90,19 @@ def write_weights(weights_dict, topo_list):
     topo_header.rstrip("\t")
     topo_file.close()
 
-    weights_file = open("weights.out", "w")
-    weights_file.write(f"scaf\tstart\tstop\t{topo_header}\n")
-    coord_list = list(weights_dict.keys())
-    coord_sort = sorted(coord_list, key=lambda x: int(re.search(r"([0-9]+)\-", x).group(1)))
-    for coord in coord_sort:
-        scaf, start, stop = re.findall(r"\w+", coord)
-        topo_weights = [0] * topo_count
-        for topo in weights_dict[coord]:
-            ix = topo_set.index(topo)
-            topo_weights[ix] = weights_dict[coord][topo]
-        weights_file.write(f"{scaf}\t{start}\t{stop}\t{'\t'.join(map(str, topo_weights))}\n")
-    weights_file.close()
+    with open("weights.out", "w") as weights_file:
+        weights_file.write(f"scaf\tstart\tstop\t{topo_header}\n")
+        coord_list = list(weights_ddict.keys())
+        coord_sort = sorted(coord_list,
+                            key=lambda x: int(re.search(r"([0-9]+)\-", x).group(1)))
+        for coord in coord_sort:
+            scaf, start, stop = re.findall(r"\w+", coord)
+            topo_weights = [0] * topo_count
+            for topo in weights_ddict[coord]:
+                ix = topo_set.index(topo)
+                topo_weights[ix] = weights_ddict[coord][topo]
+                pweights = '\t'.join(map(str, topo_weights))
+            weights_file.write(f"{scaf}\t{start}\t{stop}\t{pweights}\n")
 
 
 def parse_args(args_in):
@@ -130,5 +131,5 @@ if __name__ == "__main__":
     # =========================================================================
     #  Main executions
     # =========================================================================
-    WEIGHTS_DICT, TOPO_LIST = scrape_bpp(PREFIX, SUFFIX, CHAIN_LEN, SCAF)
-    write_weights(WEIGHTS_DICT, TOPO_LIST)
+    WEIGHTS_DDICT, TOPO_LIST = scrape_bpp(PREFIX, SUFFIX, CHAIN_LEN, SCAF)
+    write_weights(WEIGHTS_DDICT, TOPO_LIST)
