@@ -44,6 +44,7 @@ def scrape_bpp(prefix: str,
     weights_ddict = defaultdict(dict)
     for sc in scafs:
         file_list = glob.glob(f"{prefix}{sc}*{suffix}")
+        breakpoint()
         for bpp_out in file_list:
             coord = re.search(r"([0-9]+-[0-9]+)", bpp_out).group()
             start, stop = coord.split("-")
