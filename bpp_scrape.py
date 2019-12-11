@@ -51,6 +51,7 @@ def scrape_bpp(prefix: str,
             with open(bpp_out, "r") as bpp:
                 for line in bpp:
                     if line.startswith("(A)"):
+                        breakpoint()
                         line = next(bpp)
                         while line != "":
                             x = line.split()
