@@ -81,20 +81,18 @@ def write_weights(weights_ddict, topo_list, topos_in):
     None
 
     """
-    topos_ordered = []
-    with open(topos_in, 'r') as t:
-        for line in t:
-            topos_ordered.append(line.strip())
+    if topos_in:
+        topo_set = []
+        with open(topos_in, 'r') as t:
+            for line in t:
+                topo_set.append(line.strip())
+    else:
+        topo_set = list(set(topo_list))
 
     topo_freq = Counter(topo_list)
     with open("topo_freq.out", 'w') as tf:
         for topo in topo_freq.keys():
-            tf.write(f"{topo}\t{topos_ordered.index(topo)+1}\t{topo_freq[topo]}\n")
-
-    if topos_in:
-        topo_set = topos_ordered
-    else:
-        topo_set = list(set(topo_list))
+            tf.write(f"{topo}\t{topo_set.index(topo)+1}\t{topo_freq[topo]}\n")
 
     topo_header = ""
     with open("topos.out", "w") as topo_file:
