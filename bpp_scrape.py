@@ -66,7 +66,7 @@ def scrape_bpp(prefix: str,
     return weights_ddict, topo_list
 
 
-def write_weights(weights_ddict, topo_list):
+def write_weights(weights_ddict, topo_list, topos_in):
     """Write weights in stype similar to twisst output
 
     Parameters
@@ -81,20 +81,29 @@ def write_weights(weights_ddict, topo_list):
     None
 
     """
-    topo_file = open("topos.out", "w")
-    topo_set = list(set(topo_list))
+    topos_ordered = []
+    with open(topos_in, 'r') as t:
+        for line in t:
+            topos_ordered.append(line.strip())
+
     topo_freq = Counter(topo_list)
     with open("topo_freq.out", 'w') as tf:
         for topo in topo_freq.keys():
-            tf.write(f"{topo}\t{topo_set.index(topo)+1}\t{topo_freq[topo]}\n")
-    topo_header = ""
-    topo_count = len(topo_set)
-    for i, topo in enumerate(topo_set):
-        topo_file.write(f"#topo{i+1}\t{topo}\n")
-        topo_header += f"topo{i+1}\t"
-    topo_header.rstrip("\t")
-    topo_file.close()
+            tf.write(f"{topo}\t{topos_ordered.index(topo)+1}\t{topo_freq[topo]}\n")
 
+    if topos_in:
+        topo_set = topos_ordered
+    else:
+        topo_set = list(set(topo_list))
+
+    topo_header = ""
+    with open("topos.out", "w") as topo_file:
+        for i, topo in enumerate(topo_set):
+            topo_file.write(f"#topo{i+1}\t{topo}\n")
+            topo_header += f"topo{i+1}\t"
+        topo_header.rstrip("\t")
+
+    topo_count = len(topo_set)
     with open("weights.out", "w") as weights_file:
         weights_file.write(f"scaf\tstart\tstop\t{topo_header}\n")
         coord_list = list(weights_ddict.keys())
@@ -121,6 +130,9 @@ def parse_args(args_in):
                         help="scaffold or chromosome")
     parser.add_argument('-c', "--chainLen", default=0, type=int,
                         help="chain length, default or value of 0 will return proportions")
+    parser.add_argument("-t", "--topos", type=str,
+                        help="file with topos in order for output else will"
+                        "appear in order encountered in file")
     return(parser.parse_args(args_in))
 
 
@@ -133,8 +145,9 @@ if __name__ == "__main__":
     SUFFIX = args.suffix
     CHAIN_LEN = args.chainLen
     SCAF = args.scafs[0]
+    TOPOS = args.topos
     # =========================================================================
     #  Main executions
     # =========================================================================
     WEIGHTS_DDICT, TOPO_LIST = scrape_bpp(PREFIX, SUFFIX, CHAIN_LEN, SCAF)
-    write_weights(WEIGHTS_DDICT, TOPO_LIST)
+    write_weights(WEIGHTS_DDICT, TOPO_LIST, TOPOS)
