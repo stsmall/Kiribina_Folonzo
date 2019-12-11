@@ -174,7 +174,7 @@ def read_ismc(ismc_file):
     return snp_list, rho_list
 
 
-def write_recomb(pos_list, cMMb_list, cM_list):
+def write_recomb(pos_list, cMMb_list, cM_list, prho_list):
     """Write output to file
 
     Parameters
@@ -197,6 +197,9 @@ def write_recomb(pos_list, cMMb_list, cM_list):
     with open("cM.LD.out", 'w') as cm:
         for i, j in zip(pos_list, cM_list):
             cm.write(f"{i} {j}\n")
+    with open("proh.LD.out", 'w') as pr:
+        for i, j in zip(pos_list, prho_list):
+            pr.write(f"{i} {j}\n")
 
 
 def recomb_map(snp_list, rho_list, Ne, map_size):
@@ -290,7 +293,7 @@ def recomb_map_booker(snp_list, rho_snp_list, map_size):
         else:
             cMMb_list.append(((prho_snp - prho_list[i-1]) * map_size) /
                              ((snp_list[i] - snp_list[i-1])/1E6))
-    return pos_list, cMMb_list, cM_list
+    return pos_list, cMMb_list, cM_list, prho_list
 
 
 def parse_args(args_in):
@@ -331,7 +334,7 @@ if __name__ == "__main__":
         pass
         # SNP_LIST, RHO_LIST = read_relernn(LD_FILE)
     if BOOKER is True:
-        POS_LIST, CMMB_LIST, CM_LIST = recomb_map_booker(SNP_LIST, RHO_LIST, MAP_SIZE)
+        POS, CMMB, CM, PRHO = recomb_map_booker(SNP_LIST, RHO_LIST, MAP_SIZE)
     else:
-        POS_LIST, CMMB_LIST, CM_LIST = recomb_map(SNP_LIST, RHO_LIST, NE, MAP_SIZE)
-    write_recomb(POS_LIST, CMMB_LIST, CM_LIST)
+        POS, CMMB, CM, PRHO = recomb_map(SNP_LIST, RHO_LIST, NE, MAP_SIZE)
+    write_recomb(POS, CMMB, CM, PRHO)
