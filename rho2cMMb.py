@@ -271,7 +271,7 @@ def recomb_map_booker(snp_list, rho_snp_list, map_size):
     prho_list = []
     cM_list = []
     cMMb_list = []
-    for i, rho in range(rho_snp_list):
+    for i, rho in enumerate(rho_snp_list):
         if i == 0:
             rho_temp = (rho * snp_list[0])
             rho_list.append(rho_temp)
