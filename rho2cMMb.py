@@ -243,7 +243,7 @@ def recomb_map(snp_list, rho_list, Ne, map_size):
     return pos_list, cMMb_list, cM_list
 
 
-def recomb_map_booker(snp_list, rho_list, map_size):
+def recomb_map_booker(snp_list, rho_snp_list, map_size):
     """Following the conversion method of Booker et al 2017 in genetics
 
     Parameters
@@ -271,14 +271,14 @@ def recomb_map_booker(snp_list, rho_list, map_size):
     prho_list = []
     cM_list = []
     cMMb_list = []
-    for snp in range(len(snp_list)):
-        if snp == 0:
-            rho_temp = (rho_list[0] * snp_list[0])
+    for i, rho in range(rho_snp_list):
+        if i == 0:
+            rho_temp = (rho * snp_list[0])
             rho_list.append(rho_temp)
         else:
-            rho_temp = rho_list[snp] * (snp_list[snp] - snp_list[snp-1])
+            rho_temp = rho * (snp_list[i] - snp_list[i-1])
             rho_list.append(total_rho + rho_temp)
-        pos_list.append(snp_list[snp])
+        pos_list.append(snp_list[i])
         total_rho += rho_temp
     # rho to cM
     for i, rho in enumerate(rho_list):
