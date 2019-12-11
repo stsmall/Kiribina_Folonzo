@@ -81,19 +81,7 @@ def write_weights(weights_ddict, topo_list, topos_in):
     None
 
     """
-    if topos_in:
-        topo_set = []
-        with open(topos_in, 'r') as t:
-            for line in t:
-                topo_set.append(line.strip())
-    else:
-        topo_set = list(set(topo_list))
-
-    topo_freq = Counter(topo_list)
-    with open("topo_freq.out", 'w') as tf:
-        for topo in topo_freq.keys():
-            tf.write(f"#topo{topo_set.index(topo)+1}\t{topo}\t{topo_freq[topo]}\n")
-
+    topo_set = list(set(topo_list))
     topo_header = ""
     with open("topos.out", "w") as topo_file:
         for i, topo in enumerate(topo_set):
@@ -113,7 +101,7 @@ def write_weights(weights_ddict, topo_list, topos_in):
             for topo in weights_ddict[coord]:
                 ix = topo_set.index(topo)
                 topo_weights[ix] = weights_ddict[coord][topo]
-                pweights = '\t'.join(map(str, topo_weights))
+            pweights = '\t'.join(map(str, topo_weights))
             weights_file.write(f"{scaf}\t{start}\t{stop}\t{pweights}\n")
 
 
@@ -128,9 +116,6 @@ def parse_args(args_in):
                         help="scaffold or chromosome")
     parser.add_argument('-c', "--chainLen", default=0, type=int,
                         help="chain length, default or value of 0 will return proportions")
-    parser.add_argument("-t", "--topos", type=str,
-                        help="file with topos in order for output else will"
-                        "appear in order encountered in file")
     return(parser.parse_args(args_in))
 
 
