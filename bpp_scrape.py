@@ -8,12 +8,13 @@ BppScrape.py -p nCDS.bpp. -s .out -c 100000 --scafs 2L 2R 3L 3R X
 returns: Coordinate File, Twisst-style weights file
 
 """
-import sys
 import argparse
 import glob
-from collections import defaultdict
-import numpy as np
 import re
+import sys
+from collections import defaultdict
+
+import numpy as np
 
 
 def scrape_bpp(prefix: str,
