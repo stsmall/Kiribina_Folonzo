@@ -12,7 +12,7 @@ import sys
 import argparse
 import glob
 from collections import defaultdict
-from collections import Counter
+import numpy as np
 import re
 
 
@@ -66,7 +66,7 @@ def scrape_bpp(prefix: str,
     return weights_ddict, topo_list
 
 
-def write_weights(weights_ddict, topo_list, topos_in):
+def write_weights(weights_ddict, topo_list):
     """Write weights in stype similar to twisst output
 
     Parameters
@@ -90,19 +90,22 @@ def write_weights(weights_ddict, topo_list, topos_in):
         topo_header.rstrip("\t")
 
     topo_count = len(topo_set)
+    topo_freq = np.zeros([len(weights_ddict), topo_count])
     with open("weights.out", "w") as weights_file:
         weights_file.write(f"scaf\tstart\tstop\t{topo_header}\n")
         coord_list = list(weights_ddict.keys())
         coord_sort = sorted(coord_list,
                             key=lambda x: int(re.search(r"([0-9]+)\-", x).group(1)))
-        for coord in coord_sort:
+        for i, coord in enumerate(coord_sort):
             scaf, start, stop = re.findall(r"\w+", coord)
             topo_weights = [0] * topo_count
             for topo in weights_ddict[coord]:
                 ix = topo_set.index(topo)
                 topo_weights[ix] = weights_ddict[coord][topo]
+            topo_freq[i] = topo_weights
             pweights = '\t'.join(map(str, topo_weights))
             weights_file.write(f"{scaf}\t{start}\t{stop}\t{pweights}\n")
+    breakpoint()
 
 
 def parse_args(args_in):
@@ -128,9 +131,8 @@ if __name__ == "__main__":
     SUFFIX = args.suffix
     CHAIN_LEN = args.chainLen
     SCAF = args.scafs[0]
-    TOPOS = args.topos
     # =========================================================================
     #  Main executions
     # =========================================================================
     WEIGHTS_DDICT, TOPO_LIST = scrape_bpp(PREFIX, SUFFIX, CHAIN_LEN, SCAF)
-    write_weights(WEIGHTS_DDICT, TOPO_LIST, TOPOS)
+    write_weights(WEIGHTS_DDICT, TOPO_LIST)
