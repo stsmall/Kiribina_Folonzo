@@ -86,6 +86,7 @@ def write_weights(weights_ddict, topo_list):
     topo_freq = Counter(topo_list)
     with open("topo_freq.out", 'w') as tf:
         for topo in topo_freq.keys():
+            breakpoint()
             tf.write(f"{topo}\t{topo_set.index(topo)}\t{topo_freq[topo]}\n")
     topo_header = ""
     topo_count = len(topo_set)
