@@ -90,7 +90,8 @@ def write_weights(weights_ddict, topo_list):
         topo_header.rstrip("\t")
 
     topo_count = len(topo_set)
-    topo_freq = np.zeros([len(weights_ddict), topo_count])
+    coord_count = len(weights_ddict)
+    topo_freq = np.zeros([coord_count, topo_count])
     with open("weights.out", "w") as weights_file:
         weights_file.write(f"scaf\tstart\tstop\t{topo_header}\n")
         coord_list = list(weights_ddict.keys())
@@ -105,7 +106,7 @@ def write_weights(weights_ddict, topo_list):
             topo_freq[i] = topo_weights
             pweights = '\t'.join(map(str, topo_weights))
             weights_file.write(f"{scaf}\t{start}\t{stop}\t{pweights}\n")
-    breakpoint()
+    np.savetxt("topo_freq.out", np.sum(topo_freq, axis=0)/coord_count)
 
 
 def parse_args(args_in):
