@@ -24,7 +24,8 @@ Accounting for the distances between SNPs by dealing with the cumulative rho
 
 Assumes:
     independent estimate of the total map length (in cM) for your chromosome
-    else the code will express the cumulative rho as a proportion of the total rho.
+    else the code will express the cumulative rho as a proportion of the total
+    rho.
 
 # =============================================================================
 # totalMapLength = 100 # e.g. mouse chromosome 1 has a map length of ~100cM.
@@ -62,7 +63,8 @@ For each pair of adjacent SNPs, between which you have an estimate of 4Ner
 
 Notes
 -----
-Map sizes for Afunestus from XXX et al. 19XX
+Map sizes for Afunestus from Wondji et al. 2005
+https://doi.org/10.1534/genetics.105.044800
     X mapsize = 44.7
     2RL mapsize = 158
     3RL mapsize = 180
@@ -250,8 +252,6 @@ def recomb_map_booker(snp_list, rho_list, map_size):
         list of snp positions
     rho_list: List[float]
         list of rho estimates between snps
-    Ne: int
-        effective population size
     map_size: float
         map size of chromosome
 
@@ -266,23 +266,30 @@ def recomb_map_booker(snp_list, rho_list, map_size):
 
     """
     pos_list = []
-    rhocum = []
+    rho_list = []
+    total_rho = 0
+    prho_list = []
     cM_list = []
     cMMb_list = []
-    for i, pos in enumerate(snp_list):
-        if i == 0:
-            rhoTemp = (rho_list[i] * (pos))
+    for snp in range(len(snp_list)):
+        if snp == 0:
+            rho_temp = (rho_list[0] * snp_list[0])
+            rho_list.append(rho_temp)
         else:
-            rhoTemp = (rho_list[i] * (pos - snp_list[i-1]))
+            rho_temp = rho_list[snp] * (snp_list[snp] - snp_list[snp-1])
+            rho_list.append(total_rho + rho_temp)
+        pos_list.append(snp_list[snp])
+        total_rho += rho_temp
+    # rho to cM
+    for i, rho in enumerate(rho_list):
+        prho_snp = (rho / total_rho)
+        prho_list.append(prho_snp)
+        cM_list.append(prho_snp * map_size)
         if i == 0:
-            rhocum.append(rhoTemp)
+            cMMb_list.append(0)
         else:
-            rhocum.append(rhocum[-1] + rhoTemp)
-        pos_list.append(pos)
-    for i, j in enumerate(rhocum):
-        cMperSNP = (j / rhocum[-1])
-        cM_list.append(cMperSNP)
-        cMMb_list.append(((cM_list[i] - cM_list[i-1])*map_size) / ((snp_list[i] - snp_list[i-1])/1E6))
+            cMMb_list.append(((prho_snp - prho_list[i-1]) * map_size) /
+                             ((snp_list[i] - snp_list[i-1])/1E6))
     return (pos_list, cMMb_list, cM_list)
 
 
