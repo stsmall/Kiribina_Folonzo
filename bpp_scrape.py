@@ -51,17 +51,16 @@ def scrape_bpp(prefix: str,
             with open(bpp_out, "r") as bpp:
                 for line in bpp:
                     if line.startswith("(A)"):
-                        for line_a in bpp:
-                            if line_a.strip() == "":
-                                break
+                        next(line)
+                        while line != "":
+                            x = line.split()
+                            topo = "".join(x[3:])
+                            if chain > 0:
+                                weights_ddict[keycoord][topo] = float(x[1]) * chain
                             else:
-                                x = line.split()
-                                topo = "".join(x[3:])
-                                if chain > 0:
-                                    weights_ddict[keycoord][topo] = float(x[1]) * chain
-                                else:
-                                    weights_ddict[keycoord][topo] = float(x[1])
-                                topo_list.append(topo)
+                                weights_ddict[keycoord][topo] = float(x[1])
+                            topo_list.append(topo)
+                        break
     return weights_ddict, topo_list
 
 
