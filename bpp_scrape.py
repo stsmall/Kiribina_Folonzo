@@ -19,7 +19,7 @@ def scrape_bpp(prefix: str,
                suffix: str,
                chain: int,
                scafs: str):
-    """Find and collect topo infor from BPP file run with A01
+    """Find and collect topo inforation from BPP file run with A01
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ def scrape_bpp(prefix: str,
 
     Returns
     -------
-    weights_dict: default(dict)
+    weights_dict: Dict[default(dict)]
         coords, topo, weights
     topo_list: List[str]
         list of topos found in the file
