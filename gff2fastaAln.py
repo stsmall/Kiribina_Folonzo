@@ -163,7 +163,7 @@ def write_outfile(s_ix: int,
     None
 
     """
-    with open(f"{fname}.{chrom}.{s_ix}-{e_ix}.{len(loci_list}.txt", 'w') as out_file:
+    with open(f"{fname}.{chrom}.{s_ix}-{e_ix}.{len(loci_list)}.txt", 'w') as out_file:
         for item in zip(header_list, loci_list):
             headers, seqs = item
             if bpp is True:
