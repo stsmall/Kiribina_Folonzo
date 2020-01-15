@@ -336,7 +336,7 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
                     start += step
                     stop += step
                 blen_boxplot.append(blen_list)
-
+    breakpoint()
     # boxplot of node depth
     blen_data = list(zip(*blen_boxplot))
     topos_freq = calc_mrca(chrm, blen_data, min_freq, tree_count)
