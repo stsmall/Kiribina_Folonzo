@@ -350,6 +350,6 @@ if __name__ == "__main__":
             for pair in pairs:
                 boxplot_dist(chrom, div_df, pairs, topos)
     elif blen:
-        blen_data, topos_freq = sum_branch_lengths(chrom, infile, min_freq)
+        blen_data, topos_freq = sum_branch_lengths(chrom, infile, min_freq, topos)
         if bplot:
             boxplot_branchlen(chrom, blen_data, topos, topos_freq)
