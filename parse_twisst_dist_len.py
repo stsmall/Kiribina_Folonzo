@@ -194,23 +194,27 @@ def mean_distances(chrm, div_df, topos, pairs):
     f.close()
 
 
-def sum_branch_lengths(chrm, infile, min_freq, step=10, topos=105, outgroup_pos=2):
+def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
     """calculates the nodeage of the MRCA using a branchlength file produced by
     twisst
 
     to alter this for other species you must:
         1) change step size
-        2) change topos number
-        3) change outgroup blens
+        2) change outgroup blens
+
+    The blen file is
+
+    topo1_col1 topo1_col2 topo1_col3 topo2_col1 topo2_col2 topo2_col3
+    val val val val val val val val val val val
 
     Parameters
     ----------
     outgroup_pos: int
         skip the first 2 as they are outgroup root lengths and we want ingroup
     step: int
-        PASS
-    topos: int
-        PASS
+        there are 8 node times and 2 outgroup time ... this is 10
+    topos: List(str)
+        list of topos for distance calculations
 
     Returns
     -------
@@ -218,15 +222,20 @@ def sum_branch_lengths(chrm, infile, min_freq, step=10, topos=105, outgroup_pos=
     """
     breakpoint()
     blen_boxplot = []
-    tree_count = 0
+    tree_count = 0  # total window count
     topodict = {}
     with open(infile, 'r') as blen_file:
         for line in blen_file:
             if line.startswith("#"):
                 x = line.split()
                 topo = x[0][1:]
-                leaf_names = [leaf.split("--")[1] for leaf in x[3:]]
-                topodict[topo] = leaf_names
+                if topos:
+                    if topo in topos:
+                        leaf_names = [leaf.split("--")[1] for leaf in x[3:]]
+                        topodict[topo] = leaf_names
+                else:
+                    leaf_names = [leaf.split("--")[1] for leaf in x[3:]]
+                    topodict[topo] = leaf_names
             else:
                 tree_count += 1
                 start = 0
@@ -238,18 +247,23 @@ def sum_branch_lengths(chrm, infile, min_freq, step=10, topos=105, outgroup_pos=
                     if np.isnan(blen_vals[0]):
                         blen_list.append(np.nan)
                     else:
-                        topo_key = start//step
-                        blen_topo = topodict[f"topo{topo_key+1}"]
-                        leaf_ix = [blen_topo.index(bt) for bt in blen_topo if bt.count('_') == 0]
-                        # should return 3 or more
-                        blen_max = max([blen_vals[bl] for bl in leaf_ix])
-                        # get all values for leaf index and max
-                        blen_maxix = blen_topo[blen_vals.index(blen_max)]
-                        #  here is the leaf name 'Fun'
-                        leaf_dist = [blen_vals[blen_topo.index(x1)] for x1 in blen_topo if blen_maxix in x1]
-                        # now return all vals with instances of 'Fun' in topo
-                        leaf_sum = sum(leaf_dist)
-                        blen_list.append(leaf_sum)
+                        try:
+                            topo_key = start//step  # topos are column header
+                            blen_topo = topodict[f"topo{topo_key+1}"]
+                            leaf_ix = [blen_topo.index(bt) for bt in blen_topo if bt.count('_') == 0]
+                            # should return 3 or more
+                            blen_max = max([blen_vals[bl] for bl in leaf_ix])
+                            # get all values for leaf index and max
+                            blen_maxix = blen_topo[blen_vals.index(blen_max)]
+                            #  here is the leaf name 'Fun'
+                            leaf_dist = [blen_vals[blen_topo.index(x1)] for x1 in blen_topo if blen_maxix in x1]
+                            # now return all vals with instances of 'Fun' in topo
+                            leaf_sum = sum(leaf_dist)
+                            blen_list.append(leaf_sum)
+                        except KeyError:
+                            start += step
+                            stop += step
+                            continue
                     start += step
                     stop += step
                 blen_boxplot.append(blen_list)
@@ -259,16 +273,23 @@ def sum_branch_lengths(chrm, infile, min_freq, step=10, topos=105, outgroup_pos=
 
     # output file
     topos_freq = []
+    t = open(f"{chrm}.fulldata.out", "w")
     with open(f"{chrm}.nodedepth.out", 'w') as f:
-        for topo_num in range(1, 106):
-            topo = topo_num - 1
-            nancount = sum(np.isnan(blen_data[topo]))
+        for i, mrca in enumerate(blen_data):
+            if topos:
+                topo = topos[i]
+            else:
+                topo = i + 1
+            nancount = sum(np.isnan(mrca))
             if (1 - (nancount/tree_count)) >= min_freq:
-                topos_freq.append(f"topo{topo_num}")
-                mean = np.nanmean(blen_data[topo])
-                median = np.nanmedian(blen_data[topo])
-                quant_low = np.nanpercentile(blen_data[topo], 2.5)
-                quant_up = np.nanpercentile(blen_data[topo], 97.5)
+                topos_freq.append(f"topo{topo}")  # pass min_freq
+                # print full data
+                for b in mrca:
+                    t.write(f"{chrm}\ttopo{topo}\tblen\n")
+                mean = np.nanmean(mrca)
+                median = np.nanmedian(mrca)
+                quant_low = np.nanpercentile(mrca, 2.5)
+                quant_up = np.nanpercentile(mrca, 97.5)
                 f.write(f"topo{topo}:{mean} {median} [{quant_low}-{quant_up}]\n")
     return(blen_data, topos_freq)
 
