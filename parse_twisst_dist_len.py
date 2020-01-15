@@ -250,7 +250,6 @@ def calc_mrca(chrm, blen_data, min_freq, tree_count):
                 topos_freq.append(f"topo{topo}")  # pass min_freq
                 # print full data
                 for blen in mrca:
-                    breakpoint()
                     if np.isnan(blen):
                         pass
                     else:
