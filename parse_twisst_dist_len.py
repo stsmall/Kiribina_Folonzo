@@ -313,6 +313,7 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
                 stop = step
                 blen = list(map(float, line.split()))
                 blen_list = []
+                breakpoint()
                 while stop <= len(blen):
                     blen_vals = blen[start + outgroup_pos:stop]
                     if np.isnan(blen_vals[0]):
