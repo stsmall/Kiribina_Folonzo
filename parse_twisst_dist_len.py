@@ -131,7 +131,6 @@ def parse_divergence(infile):
                 topo, ind1, ind2 = header[i].split("_")
                 pairname = "{}-{}".format(ind1, ind2)
                 if div != "nan":
-                    # should remove long list of nan causing issues with boxplot
                     div_dict[topo][pairname].append(float(div))
     div_df = pd.DataFrame(div_dict)
 
@@ -217,7 +216,7 @@ def sum_branch_lengths(chrm, infile, min_freq, step=10, topos=105, outgroup_pos=
     -------
 
     """
-
+    breakpoint()
     blen_boxplot = []
     tree_count = 0
     topodict = {}
