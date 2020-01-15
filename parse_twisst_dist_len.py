@@ -120,8 +120,9 @@ def parse_divergence(infile):
 
     Returns
     -------
-    div_df: default_dictionary(List)
-        PASS
+    div_df: obj
+        Pandas DataFrame
+
     """
     div_dict = defaultdict(lambda: defaultdict(list))
     with open(infile, 'r') as f:
@@ -138,7 +139,28 @@ def parse_divergence(infile):
 
 
 def calc_mean_distance(div_df, topo, pair):
-    """
+    """Calculates mean and median from
+
+    Parameters
+    ----------
+    div_df: obj
+        pandas dataframe
+    topo: str
+        which topology
+    pair:str
+        which pair
+
+    Returns
+    -------
+    pmean: flt
+        numpy mean
+    pmedian: flt
+        numpy median
+    quant_U: flt
+        numpy upper quantile 97.5
+    qunat_L: flt
+        numpy lower quantile 2.5
+
     """
     pmean = np.nanmean(div_df[topo].loc[pair])
     pmedian = np.nanmedian(div_df[topo].loc[pair])
@@ -194,6 +216,47 @@ def mean_distances(chrm, div_df, topos, pairs):
     f.close()
 
 
+def calc_mrca(chrm, blen_data, min_freq):
+    """Finds the MRCA for each topos
+
+    Parameters
+    ----------
+    chrm: str
+        chromosome or how to name the outfile
+    blen_data: List(List)
+        zipped list of MRCA from topologies
+    min_freq: flt
+        min frequency cut off to keep a topo for plotting
+
+    Returns
+    -------
+    topos_freq: list
+        topos passing the min_freq cutoff
+
+    """
+    topos_freq = []
+    t = open(f"{chrm}.fulldata.out", "w")
+    with open(f"{chrm}.nodedepth.out", 'w') as f:
+        for i, mrca in enumerate(blen_data):
+            if topos:
+                topo = topos[i]
+            else:
+                topo = i + 1
+            nancount = sum(np.isnan(mrca))
+            freq = (1 - (nancount/tree_count))
+            if freq >= min_freq:
+                topos_freq.append(f"topo{topo}")  # pass min_freq
+                # print full data
+                for blen in mrca:
+                    t.write(f"{chrm}\ttopo{topo}\t{blen}\n")
+                mean = np.nanmean(mrca)
+                median = np.nanmedian(mrca)
+                quant_low = np.nanpercentile(mrca, 2.5)
+                quant_up = np.nanpercentile(mrca, 97.5)
+                f.write(f"topo{topo} {freq}:{mean} {median} [{quant_low}-{quant_up}]\n")
+    return topos_freq
+
+
 def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
     """calculates the nodeage of the MRCA using a branchlength file produced by
     twisst
@@ -218,9 +281,12 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
 
     Returns
     -------
+    blen_data: List(List)
+        zipped list of MRCA from topologies
+    topos_freq: list
+        topos passing the min_freq cutoff
 
     """
-    breakpoint()
     blen_boxplot = []
     tree_count = 0  # total window count
     topodict = {}
@@ -270,28 +336,8 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
 
     # boxplot of node depth
     blen_data = list(zip(*blen_boxplot))
-
-    # output file
-    topos_freq = []
-    t = open(f"{chrm}.fulldata.out", "w")
-    with open(f"{chrm}.nodedepth.out", 'w') as f:
-        for i, mrca in enumerate(blen_data):
-            if topos:
-                topo = topos[i]
-            else:
-                topo = i + 1
-            nancount = sum(np.isnan(mrca))
-            if (1 - (nancount/tree_count)) >= min_freq:
-                topos_freq.append(f"topo{topo}")  # pass min_freq
-                # print full data
-                for b in mrca:
-                    t.write(f"{chrm}\ttopo{topo}\tblen\n")
-                mean = np.nanmean(mrca)
-                median = np.nanmedian(mrca)
-                quant_low = np.nanpercentile(mrca, 2.5)
-                quant_up = np.nanpercentile(mrca, 97.5)
-                f.write(f"topo{topo}:{mean} {median} [{quant_low}-{quant_up}]\n")
-    return(blen_data, topos_freq)
+    topos_freq = calc_mrca(chrm, blen_data, min_freq)
+    return blen_data, topos_freq
 
 
 def parse_args(args_in):
