@@ -131,7 +131,9 @@ def parse_divergence(infile):
             for i, div in enumerate(line.split()):
                 topo, ind1, ind2 = header[i].split("_")
                 pairname = "{}-{}".format(ind1, ind2)
-                if div != "nan":
+                if np.isnan(div):
+                    pass
+                else:
                     div_dict[topo][pairname].append(float(div))
     div_df = pd.DataFrame(div_dict)
 
@@ -249,7 +251,9 @@ def calc_mrca(chrm, blen_data, min_freq, tree_count):
                 # print full data
                 for blen in mrca:
                     breakpoint()
-                    if blen != "nan":
+                    if np.isnan(blen):
+                        pass
+                    else:
                         t.write(f"{chrm}\ttopo{topo}\t{blen}\n")
                 mean = np.nanmean(mrca)
                 median = np.nanmedian(mrca)
