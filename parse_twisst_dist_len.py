@@ -216,7 +216,7 @@ def mean_distances(chrm, div_df, topos, pairs):
     f.close()
 
 
-def calc_mrca(chrm, blen_data, min_freq):
+def calc_mrca(chrm, blen_data, min_freq, tree_count):
     """Finds the MRCA for each topos
 
     Parameters
@@ -336,7 +336,7 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
 
     # boxplot of node depth
     blen_data = list(zip(*blen_boxplot))
-    topos_freq = calc_mrca(chrm, blen_data, min_freq)
+    topos_freq = calc_mrca(chrm, blen_data, min_freq, tree_count)
     return blen_data, topos_freq
 
 
