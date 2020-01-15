@@ -313,7 +313,6 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
                 stop = step
                 blen = list(map(float, line.split()))
                 blen_list = []
-                breakpoint()
                 while stop <= len(blen):
                     blen_vals = blen[start + outgroup_pos:stop]
                     if np.isnan(blen_vals[0]):
@@ -333,9 +332,7 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
                             leaf_sum = sum(leaf_dist)
                             blen_list.append(leaf_sum)
                         except KeyError:
-                            start += step
-                            stop += step
-                            continue
+                            pass
                     start += step
                     stop += step
                 blen_boxplot.append(blen_list)
