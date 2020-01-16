@@ -218,7 +218,7 @@ def mean_distances(chrm, div_df, topos, pairs):
     f.close()
 
 
-def calc_mrca(chrm, blen_data, min_freq, tree_count):
+def calc_mrca(chrm, topos, blen_data, min_freq, tree_count):
     """Finds the MRCA for each topos
 
     Parameters
@@ -240,25 +240,23 @@ def calc_mrca(chrm, blen_data, min_freq, tree_count):
     t = open(f"{chrm}.fulldata.out", "w")
     with open(f"{chrm}.nodedepth.out", 'w') as f:
         for i, mrca in enumerate(blen_data):
-            if topos:
-                topo = topos[i]
-            else:
-                topo = i + 1
+            topo = i + 1
             nancount = sum(np.isnan(mrca))
             freq = (1 - (nancount/tree_count))
             if freq >= min_freq:
                 topos_freq.append(f"topo{topo}")  # pass min_freq
-                # print full data
-                for blen in mrca:
-                    if np.isnan(blen):
-                        pass
-                    else:
-                        t.write(f"{chrm}\ttopo{topo}\t{blen}\n")
-                mean = np.nanmean(mrca)
-                median = np.nanmedian(mrca)
-                quant_low = np.nanpercentile(mrca, 2.5)
-                quant_up = np.nanpercentile(mrca, 97.5)
-                f.write(f"topo{topo} {freq:.3f}:{mean:.3f} {median:.3f} [{quant_low:.3f}-{quant_up:.3f}]\n")
+                if topo in topos:
+                    # print full data
+                    for blen in mrca:
+                        if np.isnan(blen):
+                            pass
+                        else:
+                            t.write(f"{chrm}\ttopo{topo}\t{blen}\n")
+                    mean = np.nanmean(mrca)
+                    median = np.nanmedian(mrca)
+                    quant_low = np.nanpercentile(mrca, 2.5)
+                    quant_up = np.nanpercentile(mrca, 97.5)
+                    f.write(f"topo{topo} {freq:.3f}:{mean:.3f} {median:.3f} [{quant_low:.3f}-{quant_up:.3f}]\n")
     return topos_freq
 
 
@@ -300,13 +298,8 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
             if line.startswith("#"):
                 x = line.split()
                 topo = x[0][1:]
-                if topos:
-                    if topo in topos:
-                        leaf_names = [leaf.split("--")[1] for leaf in x[3:]]
-                        topodict[topo] = leaf_names
-                else:
-                    leaf_names = [leaf.split("--")[1] for leaf in x[3:]]
-                    topodict[topo] = leaf_names
+                leaf_names = [leaf.split("--")[1] for leaf in x[3:]]
+                topodict[topo] = leaf_names
             else:
                 tree_count += 1
                 start = 0
@@ -318,28 +311,24 @@ def sum_branch_lengths(chrm, infile, min_freq, topos, step=10, outgroup_pos=2):
                     if np.isnan(blen_vals[0]):
                         blen_list.append(np.nan)
                     else:
-                        try:
-                            topo_key = start//step  # topos are column header
-                            blen_topo = topodict[f"topo{topo_key+1}"]
-                            leaf_ix = [blen_topo.index(bt) for bt in blen_topo if bt.count('_') == 0]
-                            # should return 3 or more
-                            blen_max = max([blen_vals[bl] for bl in leaf_ix])
-                            # get all values for leaf index and max
-                            blen_maxix = blen_topo[blen_vals.index(blen_max)]
-                            #  here is the leaf name 'Fun'
-                            leaf_dist = [blen_vals[blen_topo.index(x1)] for x1 in blen_topo if blen_maxix in x1]
-                            # now return all vals with instances of 'Fun' in topo
-                            leaf_sum = sum(leaf_dist)
-                            blen_list.append(leaf_sum)
-                        except KeyError:
-                            pass
+                        topo_key = start//step  # topos are column header
+                        blen_topo = topodict[f"topo{topo_key+1}"]
+                        leaf_ix = [blen_topo.index(bt) for bt in blen_topo if bt.count('_') == 0]
+                        # should return 3 or more
+                        blen_max = max([blen_vals[bl] for bl in leaf_ix])
+                        # get all values for leaf index and max
+                        blen_maxix = blen_topo[blen_vals.index(blen_max)]
+                        #  here is the leaf name 'Fun'
+                        leaf_dist = [blen_vals[blen_topo.index(x1)] for x1 in blen_topo if blen_maxix in x1]
+                        # now return all vals with instances of 'Fun' in topo
+                        leaf_sum = sum(leaf_dist)
+                        blen_list.append(leaf_sum)
                     start += step
                     stop += step
                 blen_boxplot.append(blen_list)
-    breakpoint()
     # boxplot of node depth
     blen_data = list(zip(*blen_boxplot))
-    topos_freq = calc_mrca(chrm, blen_data, min_freq, tree_count)
+    topos_freq = calc_mrca(chrm, topos, blen_data, min_freq, tree_count)
     return blen_data, topos_freq
 
 
