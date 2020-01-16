@@ -240,24 +240,24 @@ def calc_mrca(chrm, topos, blen_data, min_freq, tree_count):
     t = open(f"{chrm}.fulldata.out", "w")
     with open(f"{chrm}.nodedepth.out", 'w') as f:
         for i, mrca in enumerate(blen_data):
-            topo = i + 1
+            topo = f"topo{i + 1}"
             nancount = sum(np.isnan(mrca))
             freq = (1 - (nancount/tree_count))
             breakpoint()
             if freq >= min_freq:
-                topos_freq.append(f"topo{topo}")  # pass min_freq
+                topos_freq.append(f"{topo}")  # pass min_freq
                 if topo in topos:
                     # print full data
                     for blen in mrca:
                         if np.isnan(blen):
                             pass
                         else:
-                            t.write(f"{chrm}\ttopo{topo}\t{blen}\n")
+                            t.write(f"{chrm}\t{topo}\t{blen}\n")
                     mean = np.nanmean(mrca)
                     median = np.nanmedian(mrca)
                     quant_low = np.nanpercentile(mrca, 2.5)
                     quant_up = np.nanpercentile(mrca, 97.5)
-                    f.write(f"topo{topo} {freq:.3f}:{mean:.3f} {median:.3f} [{quant_low:.3f}-{quant_up:.3f}]\n")
+                    f.write(f"{topo} {freq:.3f}:{mean:.3f} {median:.3f} [{quant_low:.3f}-{quant_up:.3f}]\n")
     return topos_freq
 
 
