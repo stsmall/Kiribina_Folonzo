@@ -243,7 +243,6 @@ def calc_mrca(chrm, topos, blen_data, min_freq, tree_count):
             topo = f"topo{i + 1}"
             nancount = sum(np.isnan(mrca))
             freq = (1 - (nancount/tree_count))
-            breakpoint()
             if freq >= min_freq:
                 topos_freq.append(f"{topo}")  # pass min_freq
                 if topo in topos:
