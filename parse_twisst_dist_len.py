@@ -245,7 +245,7 @@ def calc_mrca(chrm, topos, blen_data, min_freq, tree_count):
             freq = (1 - (nancount/tree_count))
             if freq >= min_freq:
                 topos_freq.append(f"{topo}")  # pass min_freq
-                if topo in topos:
+                if (topo in topos) or (len(topos) == 0):
                     # print full data
                     for blen in mrca:
                         if np.isnan(blen):
