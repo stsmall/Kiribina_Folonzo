@@ -60,9 +60,9 @@ def t1t2_stats_out(AB_T1, AB_T2, BC_T1, BC_T2, AC_T1, AC_T2, c_AB, c_BC, c_AC):
     with open("t1t2.out", 'w') as f:
         for i, t in enumerate(topo):
             for height in t2[i]:
-                f.write(f"{t},T2,{height}")
+                f.write(f"{t},T2,{height}\n")
             for height in t1[i]:
-                f.write(f"{t},T1,{height}")
+                f.write(f"{t},T1,{height}\n")
 
     # internal node length
     sp2C2 = sp234T1 - sp23T2
