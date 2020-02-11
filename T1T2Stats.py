@@ -4,7 +4,6 @@
 import sys
 from Bio import Phylo as phy
 import numpy as np
-from scipy import stats
 
 
 def distanceAB_T1T2(tree, AB_T1, AB_T2):
@@ -40,7 +39,7 @@ def distanceAC_T1T2(tree, AC_T1, AC_T2):
     return(AC_T1, AC_T2)
 
 
-def t1t2_stats_out(AB_T1, AB_T2, BC_T1, BC_T2, AC_T1, AC_T2, c_AB, c_BC, c_AC):
+def t1t2_stats_out(AB_T1, AB_T2, BC_T1, BC_T2, AC_T1, AC_T2, c_AB, c_BC, c_AC, outfile):
     """
     """
     # T2
@@ -57,7 +56,7 @@ def t1t2_stats_out(AB_T1, AB_T2, BC_T1, BC_T2, AC_T1, AC_T2, c_AB, c_BC, c_AC):
     t2 = [AB_T2, BC_T2, AC_T2]
     t1 = [AB_T1, BC_T1, AC_T1]
 
-    with open("t1t2.out", 'w') as f:
+    with open(f"{outfile}.t1t2.out", 'w') as f:
         for i, t in enumerate(topo):
             for height in t2[i]:
                 f.write(f"{t},T2,{height}\n")
@@ -82,6 +81,7 @@ if __name__ == "__main__":
     sp2 = sys.argv[2]  # A
     sp3 = sys.argv[3]  # B
     sp4 = sys.argv[4]  # C
+    outfile = sys.argv[5]
     # =========================================================================
     #  Main executions
     # =========================================================================
@@ -105,4 +105,4 @@ if __name__ == "__main__":
         elif (tree.distance(sp2, sp4) < tree.distance(sp2, sp3)) and (tree.distance(sp2, sp4) < tree.distance(sp3, sp4)):  # (2,4),3
             c_AC += 1
             AC_T1, AC_T2 = distanceAC_T1T2(tree, AC_T1, AC_T2)
-    t1t2_stats_out(AB_T1, AB_T2, BC_T1, BC_T2, AC_T1, AC_T2, c_AB, c_BC, c_AC)
+    t1t2_stats_out(AB_T1, AB_T2, BC_T1, BC_T2, AC_T1, AC_T2, c_AB, c_BC, c_AC, outfile)
