@@ -43,11 +43,10 @@ def build_filter(filter_dir):
         DESCRIPTION.
 
     """
-    breakpoint()
     filt_dict = defaultdict(list)
-    vcf_files = glob.glob("filter_dir/*vcf.gz")
+    vcf_files = glob.glob(f"{filter_dir}/*vcf.gz")
     filt_files = [path.join(filter_dir, vcf) for vcf in vcf_files]
-
+    breakpoint()
     for file in filt_files:
         with gzip.open(file, 'rb') as f:
             for line in f:
