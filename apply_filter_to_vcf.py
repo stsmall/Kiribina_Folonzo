@@ -23,7 +23,7 @@ Notes
 """
 import sys
 import gzip
-from path import join
+from os import path
 import glob
 from collections import defaultdict
 import argparse
@@ -45,7 +45,7 @@ def build_filter(filter_dir):
     """
     filt_dict = defaultdict(list)
     vcf_files = glob.glob("filter_dir/*vcf.gz")
-    filt_files = [join(filter_dir, vcf) for vcf in vcf_files]
+    filt_files = [path.join(filter_dir, vcf) for vcf in vcf_files]
 
     for file in filt_files:
         with gzip.open(file, 'rb') as f:
