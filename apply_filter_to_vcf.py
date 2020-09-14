@@ -160,6 +160,7 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
+    breakpoint()
     filt_dict = build_filter(indv_dir)
     add_filter(vcfFile, output_name, filt_dict)
     write_filter(filt_dict)
