@@ -108,7 +108,7 @@ def add_filter(vcfFile, output_name, filt_dict):
     None.
 
     """
-    with gzip.open(f'{output_name}.gz', 'wb') as out:
+    with gzip.open(f'{output_name}', 'wb') as out:
         with gzip.open(vcfFile, 'rb') as vcf:
             for line in vcf:
                 line = line.decode()
