@@ -43,6 +43,7 @@ def build_filter(filter_dir):
         DESCRIPTION.
 
     """
+    breakpoint()
     filt_dict = defaultdict(list)
     vcf_files = glob.glob("filter_dir/*vcf.gz")
     filt_files = [path.join(filter_dir, vcf) for vcf in vcf_files]
@@ -60,7 +61,6 @@ def build_filter(filter_dir):
                     chrom = vcf_line[0]
                     pos = vcf_line[1]
                     filt = vcf_line[6]
-                    breakpoint()
                     if filt == ".":
                         pass
                     else:
@@ -160,7 +160,6 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
-    breakpoint()
     filt_dict = build_filter(indv_dir)
     add_filter(vcfFile, output_name, filt_dict)
     write_filter(filt_dict)
