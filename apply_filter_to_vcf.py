@@ -50,6 +50,7 @@ def build_filter(filter_dir):
     for file in filt_files:
         with gzip.open(file, 'rb') as f:
             for line in f:
+                line = line.decode()
                 if line.startswith("##"):
                     pass
                 elif line.startswith("#CHROM"):
@@ -110,6 +111,7 @@ def add_filter(vcfFile, output_name, filt_dict):
     with gzip.open(f'{output_name}.gz', 'wb') as out:
         with gzip.open(vcfFile, 'rb') as vcf:
             for line in vcf:
+                line = line.decode()
                 if line.startswith("##"):
                     out.write(line)
                 elif line.startswith("#CHROM"):

@@ -17,17 +17,16 @@ Notes
     requires four files:
             KirFol.AfunF3.{chroms}.filter.mask.txt from apply_filter_to_vcf.py
             KirFol.AfunF3.{chroms}.uncalled.mask.txt from get_uncalled.py
-            KirFol.AfunF3.{chroms}.miss.indv.txt
+            KirFol.AfunF3.{chroms}.miss.site.txt  #  prior on missingness
 
-    1) remove highly missing individuals
-    2) check site missingness : KirFol.AfunF3.{chroms}.miss.site.txt
-    3) remove individuals that maximize keeping sites, only 10% missing/site
+    1) remove highly missing individuals by using --missing-indv and cutoff
+    2) run vcftools site missingness : KirFol.AfunF3.{chroms}.miss.site.txt
+    3) run apply_filter_to_vcf.py and get_uncalled.py
+    4) try to maximize sites and individuals within target, here 5% for phasing
 
 
 """
 
-# remove indv using miss.indv.txt
-# calculate miss.site
 # stepwise remove individuals from High-low to minimize the average site_missingness
 # phasing will work w/ 20% missing data, instead of removing sites, remove indvs
 
