@@ -59,8 +59,12 @@ def build_filter(filter_dir):
                     vcf_line = line.split()
                     chrom = vcf_line[0]
                     pos = vcf_line[1]
-                    site = f'{chrom}_{pos}'
-                    filt_dict[site].append(sample)
+                    filt = vcf_line[6]
+                    if filt == ".":
+                        pass
+                    else:
+                        site = f'{chrom}_{pos}'
+                        filt_dict[site].append(sample)
     return filt_dict
 
 
@@ -81,7 +85,7 @@ def write_filter(filt_dict):
     for site in filt_dict.keys():
         chrom, pos = site.split("_")
         for indv in filt_dict[site]:
-            indv_dict[f'{indv}_{chrom}'].append(pos)
+            indv_dict[f'{indv}:{chrom}'].append(pos)
 
     with gzip.open(f"KirFol.AfunF3.{chrom}.filter.mask.txt", 'wt') as filt:
         for indv in indv_dict.keys():

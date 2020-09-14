@@ -18,11 +18,10 @@ with gzip.open(sys.argv[1], 'rb') as vcf:
             for i, gt in enumerate(genotypes):
                 sample = sample_line[i]
                 if "./." in gt.split(":")[0]:
-                    breakpoint()
-                    uncalled_dict[f"{sample}"].append(pos)
+                    uncalled_dict[f"{sample}:{chrom}"].append(pos)
 
 with open(sys.argv[2], 'wt') as uncalled:
     for sample in sample_line:
         tab_line = "\t".join(uncalled_dict[sample])
-        indv, chrom = sample.split(",")
+        indv, chrom = sample.split(":")
         uncalled.write(f'{indv}\t{chrom}\t{tab_line}\n')
