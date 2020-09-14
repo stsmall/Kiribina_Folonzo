@@ -60,6 +60,7 @@ def build_filter(filter_dir):
                     chrom = vcf_line[0]
                     pos = vcf_line[1]
                     filt = vcf_line[6]
+                    breakpoint()
                     if filt == ".":
                         pass
                     else:
@@ -112,7 +113,7 @@ def add_filter(vcfFile, output_name, filt_dict):
     None.
 
     """
-    with gzip.open(f'{output_name}.gz', 'wt') as out:
+    with gzip.open(f'{output_name}', 'wt') as out:
         with gzip.open(vcfFile, 'rb') as vcf:
             for line in vcf:
                 line = line.decode()
