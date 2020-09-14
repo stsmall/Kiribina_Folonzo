@@ -126,7 +126,7 @@ def add_filter(vcfFile, output_name, filt_dict):
                     for indv in masked_samples:
                         s_ix = sample_list.index(indv)
                         vcf_line[s_ix] = "./."
-                    vcf_tab = "\t".joint(vcf_line)
+                    vcf_tab = "\t".join(vcf_line)
                     out.write(f"{vcf_tab}\n")
     return None
 
