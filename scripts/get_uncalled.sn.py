@@ -1,9 +1,8 @@
-# get uncalled from vcf
-
 import gzip
+import sys
 
 uncalled_dict = {}
-with gzip.open(snakemake.input[0]) as vcf:
+with gzip.open(sys.argv[1], 'rb') as vcf:
     for line in vcf:
         line = line.decode()
         if line.startswith("#CHROM"):
@@ -20,6 +19,7 @@ with gzip.open(snakemake.input[0]) as vcf:
                 if "./." in gt.split(":")[0]:
                     uncalled_dict[sample].append("pos")
 
-with open(snakemake.output[0], 'w') as uncalled:
+with open(sys.argv[2], 'wt') as uncalled:
     for sample in sample_line:
-        uncalled.write(f'{sample}/t{uncalled_dict[sample].join("/t")}/n')
+        tab_line = "/t".join(uncalled_dict[sample])
+        uncalled.write(f'{sample}/t{tab_line}/n')
