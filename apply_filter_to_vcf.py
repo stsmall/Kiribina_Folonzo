@@ -87,7 +87,7 @@ def write_filter(filt_dict):
         for indv in filt_dict[site]:
             indv_dict[f'{indv}:{chrom}'].append(pos)
 
-    with gzip.open(f"KirFol.AfunF3.{chrom}.filter.mask.txt", 'wt') as filt:
+    with gzip.open(f"KirFol.AfunF3.{chrom}.filter.mask.txt.gz", 'wt') as filt:
         for indv in indv_dict.keys():
             site_list = "\t".join(indv_dict[indv])
             filt.write(f'{indv}\t{chrom}\t{site_list}\n')
@@ -112,7 +112,7 @@ def add_filter(vcfFile, output_name, filt_dict):
     None.
 
     """
-    with gzip.open(f'{output_name}', 'wt') as out:
+    with gzip.open(f'{output_name}.gz', 'wt') as out:
         with gzip.open(vcfFile, 'rb') as vcf:
             for line in vcf:
                 line = line.decode()
