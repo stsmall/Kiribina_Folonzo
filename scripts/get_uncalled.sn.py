@@ -1,7 +1,8 @@
 import gzip
 import sys
+from collections import defaultdict
+uncalled_dict = defaultdict(list)
 
-uncalled_dict = {}
 with gzip.open(sys.argv[1], 'rb') as vcf:
     for line in vcf:
         line = line.decode()
@@ -12,14 +13,14 @@ with gzip.open(sys.argv[1], 'rb') as vcf:
         elif not line.startswith("#"):
             variant_line = line.split()
             chrom = variant_line[0]
-            pos = int(variant_line[1])
+            pos = variant_line[1]
             genotypes = variant_line[9:]
             for i, gt in enumerate(genotypes):
                 sample = sample_line[i]
                 if "./." in gt.split(":")[0]:
-                    uncalled_dict[sample].append("pos")
+                    uncalled_dict[sample].append(pos)
 
 with open(sys.argv[2], 'wt') as uncalled:
     for sample in sample_line:
-        tab_line = "/t".join(uncalled_dict[sample])
-        uncalled.write(f'{sample}/t{tab_line}/n')
+        tab_line = "\t".join(uncalled_dict[sample])
+        uncalled.write(f'{sample}\t{tab_line}\n')
