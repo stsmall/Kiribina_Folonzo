@@ -104,12 +104,12 @@ def check_missingness(miss_arr, missSite):
         for line in miss:
             line = line.decode()
 
-
+    # TODO: check that these make sense
     return site_missing, indv_missing
 
 
 def iterate_target_missingness(miss_arr, target):
-
+    # TODO: set up minimize or something
     keep = open("keep.txt", 'w')
 
     return None

@@ -83,8 +83,9 @@ def write_filter(filt_dict, output_name):
         chrom, pos = site.split("_")
         for indv in filt_dict[site]:
             indv_dict[f'{indv}:{chrom}'].append(pos)
-    contig_chrom = output_name.split(".")[2]
-    with gzip.open(f"KirFol.AfunF3.{contig_chrom}.filter.mask.txt.gz", 'wt') as filt:
+    contig = output_name.split(".")[2]
+    chrom = output_name.split(".")[3]
+    with gzip.open(f"KirFol.AfunF3.{contig}.{chrom}.filter.mask.txt.gz", 'wt') as filt:
         for indv in indv_dict.keys():
             site_list = "\t".join(indv_dict[indv])
             filt.write(f'{indv}\t{site_list}\n')
