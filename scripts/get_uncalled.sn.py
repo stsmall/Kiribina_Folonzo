@@ -20,7 +20,7 @@ with gzip.open(sys.argv[1], 'rb') as vcf:
                 if "./." in gt.split(":")[0]:
                     uncalled_dict[sample].append(pos)
 
-with open(sys.argv[2], 'wt') as uncalled:
+with gzip.open(sys.argv[2], 'wt') as uncalled:
     for sample in sample_line:
         tab_line = "\t".join(uncalled_dict[sample])
         uncalled.write(f'{sample}\t{chrom}\t{tab_line}\n')

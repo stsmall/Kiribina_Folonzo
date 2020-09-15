@@ -23,7 +23,6 @@ Notes
 """
 import sys
 import gzip
-from os import path
 import glob
 from collections import defaultdict
 import argparse
@@ -66,7 +65,7 @@ def build_filter(filter_dir):
     return filt_dict
 
 
-def write_filter(filt_dict):
+def write_filter(filt_dict, output_name):
     """Write individual filters as file.
 
     Parameters
@@ -84,8 +83,8 @@ def write_filter(filt_dict):
         chrom, pos = site.split("_")
         for indv in filt_dict[site]:
             indv_dict[f'{indv}:{chrom}'].append(pos)
-
-    with gzip.open(f"KirFol.AfunF3.{chrom}.filter.mask.txt.gz", 'wt') as filt:
+    contig_chrom = output_name.split(".")[2]
+    with gzip.open(f"KirFol.AfunF3.{contig_chrom}.filter.mask.txt.gz", 'wt') as filt:
         for indv in indv_dict.keys():
             site_list = "\t".join(indv_dict[indv])
             filt.write(f'{indv}\t{site_list}\n')
@@ -158,8 +157,8 @@ def main():
     #  Main executions
     # =========================================================================
     filt_dict = build_filter(indv_dir)
-    add_filter(vcfFile, output_name, filt_dict)
     write_filter(filt_dict)
+    add_filter(vcfFile, output_name, filt_dict)
 
 
 if __name__ == "__main__":
