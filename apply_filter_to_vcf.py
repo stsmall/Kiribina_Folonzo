@@ -157,7 +157,7 @@ def main():
     #  Main executions
     # =========================================================================
     filt_dict = build_filter(indv_dir)
-    write_filter(filt_dict)
+    write_filter(filt_dict, output_name)
     add_filter(vcfFile, output_name, filt_dict)
 
 
