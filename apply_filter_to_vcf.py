@@ -136,9 +136,11 @@ def parse_args(args_in):
     """Parse args."""
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-v', "--vcf", type=str, help="vcf file to apply filter")
-    parser.add_argument('-d', "--filter_directory", type=str, help="directory "
-                        "that contains individual vcfs with filter information")
+    parser.add_argument('-v', "--vcf", type=str, required=True,
+                        help="vcf file to apply filter")
+    parser.add_argument('-d', "--filter_directory", type=str, required=True,
+                        help="directory that contains individual vcfs with filter "
+                        "information")
     parser.add_argument('-o', "--output_name", type=str, help="name to give "
                         "output file. gzip will be added")
     return(parser.parse_args(args_in))
@@ -153,6 +155,8 @@ def main():
     vcfFile = args.vcf
     indv_dir = args.filter_directory
     output_name = args.output_name
+    if output_name is None:
+        output_name = vcfFile.rstrip(".vcf.gz")
     # =========================================================================
     #  Main executions
     # =========================================================================
