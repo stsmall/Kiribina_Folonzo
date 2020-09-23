@@ -31,6 +31,7 @@ Notes
 """
 import sys
 import numpy as np
+from tqdm import tqdm
 import allel
 import copy
 import argparse
@@ -92,6 +93,7 @@ def load_vcf(vcfFile, perc):
         DESCRIPTION.
 
     """
+    print(f"loading vcf:{vcfFile}")
     callset = allel.read_vcf(vcfFile)
     sample_id = callset['samples']
     gt = allel.GenotypeArray(callset['calldata/GT'])
@@ -100,6 +102,8 @@ def load_vcf(vcfFile, perc):
     miss_list = missing(gt, sample_mask)
     miss_list_save = copy.copy(miss_list)
 
+    print("running...")
+    pbar = tqdm(total=len(sample_mask))
     mx = []
     samplecfg = []
     while sum(sample_mask) > 0:
@@ -108,6 +112,8 @@ def load_vcf(vcfFile, perc):
         ix = np.where(miss_list == max(miss_list))
         sample_mask[ix] = False
         miss_list[ix] = 0
+        pbar.update(1)
+    pbar.close()
 
     mxgrad = np.gradient(mx)
     mxgrad_ix = np.where(mxgrad == max(mxgrad))[0][0]
