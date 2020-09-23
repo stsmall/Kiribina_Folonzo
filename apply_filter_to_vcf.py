@@ -143,7 +143,7 @@ def parse_args(args_in):
                         help="directory that contains individual vcfs with filter "
                         "information")
     parser.add_argument('-o', "--output_name", type=str, help="name to give "
-                        "output file. gzip will be added")
+                        "output file")
     return(parser.parse_args(args_in))
 
 

@@ -31,104 +31,98 @@ Notes
 """
 import sys
 import numpy as np
-import gzip
+import allel
+import copy
 import argparse
 
 
-def make_missarray(vcfFile, uncalled, filtered):
-    """Load missing data to dictionary.
+def max_sites(sample_mask, gt, perc):
+    """Minimize fx.
+
+    Returns
+    -------
+    None.
+
+    """
+    gtt = gt[:, sample_mask]
+    n_sites = gtt.shape[0]
+    # count sites w/out indv
+    missing = gtt.is_missing()
+    sites = np.sum(missing, axis=1) / n_sites
+    # count sites lost at percentage
+    p_sites = sites < perc
+    np_sites = np.sum(p_sites)
+    return sum(sample_mask) * (1/np_sites)
+
+
+def missing(gt, sample_mask):
+    """Count original missing.
 
     Parameters
     ----------
-    uncalled : TYPE
+    gt : TYPE
         DESCRIPTION.
-    filtered : TYPE
+    sample_mask : TYPE
         DESCRIPTION.
 
     Returns
     -------
-    miss_dict : dict
-        dictionary of missing sites. '5':['indv1', 'indv2', 'indv3']
+    None.
+
     """
-    pos_list = []
-    with gzip.open(vcfFile, 'rb') as vcf:
-        for line in vcf:
-            line = line.decode()
-            if line.startwith("##"):
-                pass
-            elif line.startswith("#CHROM"):
-                samples = line.split()[9:]
-            else:
-                vcf_list = line.split()
-                chrom = vcf_list[0]
-                pos = vcf_list[1]
-                pos_list.append(pos)
-
-    rows = len(samples)
-    columns = len(pos_list)
-    pos_arr = np.array(pos_list)
-    miss_arr = np.ones([rows, columns])
-
-    with gzip.open(filtered, 'rb') as filt:
-        for ix, line in enumerate(filt):
-            line = line.decode()
-            indv, chrom, *sites = line.split()
-            site_arr = np.array(sites)
-            miss_arr[ix, ] = np.in1d(pos_arr, site_arr)
-
-    return miss_arr
+    gtt = gt[:, sample_mask]
+    n_sites = gtt.shape[0]
+    # count sites w/out indv
+    missing = gtt.is_missing()
+    sites = np.sum(missing, axis=0) / n_sites
+    return(sites)
 
 
-def check_missingness(miss_arr, missSite):
-    """Check that missing values are consistent.
+def load_vcf(vcfFile, perc):
+    """Load vcf.
 
     Parameters
     ----------
-    miss_arr : TYPE
-        DESCRIPTION.
-    missSite : TYPE
+    vcfFile : TYPE
         DESCRIPTION.
 
     Returns
     -------
-    site_missing : TYPE
-        DESCRIPTION.
-    indv_missing : TYPE
+    gt : TYPE
         DESCRIPTION.
 
     """
-    site_missing = np.sum(miss_arr, axis=0) / miss_arr.shape[0]
-    indv_missing = np.sum(miss_arr, axis=1) / miss_arr.shape[1]
+    callset = allel.read_vcf(vcfFile)
+    sample_id = callset['samples']
+    gt = allel.GenotypeArray(callset['calldata/GT'])
 
-    with gzip.open(missSite, 'rb') as miss:
-        for line in miss:
-            line = line.decode()
+    sample_mask = np.array([True] * len(sample_id))
+    miss_list = missing(gt, sample_mask)
+    miss_list_save = copy.copy(miss_list)
 
-    # TODO: check that these make sense
-    return site_missing, indv_missing
+    mx = []
+    samplecfg = []
+    while sum(sample_mask) > 0:
+        mx.append(max_sites(sample_mask, gt, perc))
+        samplecfg.append(copy.copy(sample_mask))
+        ix = np.where(miss_list == max(miss_list))
+        sample_mask[ix] = False
+        miss_list[ix] = 0
 
-
-def iterate_target_missingness(miss_arr, target):
-    # TODO: set up minimize or something
-    keep = open("keep.txt", 'w')
-
-    return None
+    mxgrad = np.gradient(mx)
+    mxgrad_ix = np.where(mxgrad == max(mxgrad))[0][0]
+    final_cfg = sample_id[samplecfg[mxgrad_ix]]
+    return final_cfg
 
 
 def parse_args(args_in):
     """Parse args."""
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-v", "--vcf", type=str, required=True,
+    parser.add_argument("-v", "--vcfFile", type=str, required=True,
                         help="vcf to iterate for missingness")
     parser.add_argument("-t", "--target", type=float, required=True, default=0.05,
                         help="target of site missingness")
-    parser.add_argument("-u", "--uncalled", type=str,
-                        help="file records of uncalled sites")
-    parser.add_argument("-f", "--filtered", type=str, required=True,
-                        help="file records of filtered sites")
-    parser.add_argument("-m", "--miss", type=str,
-                        help="output of vcftools --missing-site")
     return(parser.parse_args(args_in))
 
 
@@ -139,16 +133,16 @@ def main():
     #  Gather args
     # =========================================================================
     vcfFile = args.vcfFile
-    miss = args.miss
     target = args.target
-    uncalled = args.uncalled
-    filt = args.filtered
     # =========================================================================
     #  Main executions
     # =========================================================================
-    miss_arr = make_missarray(vcfFile, uncalled, filt)
-    site, indv = check_missingness(miss_arr, miss)
-    iterate_target_missingness(miss_arr, target)
+    sample_cfg = load_vcf(vcfFile, target)
+    with open(f"keep_samples.{target}.txt", 'wt') as out:
+        for s in sample_cfg:
+            out.write(f"{s}\n")
+    print(f"{sample_cfg}")
+    print(f"{len(sample_cfg)}")
 
 
 if __name__ == "__main__":

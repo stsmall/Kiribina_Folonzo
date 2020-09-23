@@ -17,7 +17,7 @@ with gzip.open(sys.argv[1], 'rb') as vcf:
             genotypes = variant_line[9:]
             for i, gt in enumerate(genotypes):
                 sample = sample_line[i]
-                if "./." in gt.split(":")[0]:
+                if "./." in gt.split(":")[0] or ".|." in gt.split(":")[0]:
                     uncalled_dict[sample].append(pos)
 
 with gzip.open(sys.argv[2], 'wt') as uncalled:
