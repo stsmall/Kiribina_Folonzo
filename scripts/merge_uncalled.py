@@ -14,12 +14,12 @@ for files in (input_files):
     with gzip.open(files, 'rb') as missing:
         for line in missing:
             line = line.decode()
-            sample, chrom, *pos = line.split()
-            missingdict[f"{sample}-{chrom}"].extend(pos)
+            sample_id, chrom, *pos = line.split()
+            missingdict[f"{sample_id}:{chrom}"].extend(pos)
 
-with gzip.open(f"{contig}.merged.mask.out", 'wt') as out:
+with gzip.open(f"{contig}.merged.mask.out.gz", 'wt') as out:
     for sample in missingdict.keys():
-        indv, chrom = sample.split("-")
+        indv, chrom = sample.split(":")
         pos = set(missingdict[sample])  # sorted?
         pos_sorted = sorted(pos, key=int)
         pos_line = "\t".join(pos_sorted)
