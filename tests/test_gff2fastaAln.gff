@@ -1,0 +1,25 @@
+# butts
+3R      Anfun.sg        CDS    80184   81392   .       +       .       ID=AFUN007824-RA.path2;Name=AFUN007824-RA
+3R      Anfun.sg        gene    80585   81238   .       +       .       ID=AFUN001157-RA.path1;Name=AFUN001157-RA
+3R      Anfun.sg        gene    81674   82174   .       -       .       ID=AFUN014142-RA.path1;Name=AFUN014142-RA
+3R      Anfun.sg        gene    81674   82198   .       -       .       ID=AFUN014142-RB.path1;Name=AFUN014142-RB
+3R      Anfun.sg        gene    82769   86746   .       +       .       ID=AFUN001156-RA.path1;Name=AFUN001156-RA
+3R      Anfun.sg        CDS    88351   91331   .       -       .       ID=AFUN001155-RA.path1;Name=AFUN001155-RA
+3R      Anfun.sg        gene    93846   102110  .       -       .       ID=AFUN001153-RA.path1;Name=AFUN001153-RA
+3R      Anfun.sg        gene    94846   97145   .       +       .       ID=AFUN001154-RA.path1;Name=AFUN001154-RA
+3R      Anfun.sg        gene    102413  104624  .       +       .       ID=AFUN001152-RA.path1;Name=AFUN001152-RA
+3R      Anfun.sg        gene    105286  109088  .       -       .       ID=AFUN001151-RA.path1;Name=AFUN001151-RA
+3R      Anfun.sg        gene    109441  111906  .       +       .       ID=AFUN001150-RA.path1;Name=AFUN001150-RA
+3R      Anfun.sg        CDS    112087  112923  .       -       .       ID=AFUN001149-RA.path1;Name=AFUN001149-RA
+3R      Anfun.sg        gene    115234  128335  .       +       .       ID=AFUN001148-RA.path1;Name=AFUN001148-RA
+3R      Anfun.sg        gene    132532  132777  .       +       .       ID=AFUN001147-RA.path1;Name=AFUN001147-RA
+3R      Anfun.sg        gene    132829  133920  .       -       .       ID=AFUN001146-RA.path1;Name=AFUN001146-RA
+3R      Anfun.sg        gene    134641  137884  .       +       .       ID=AFUN001145-RA.path1;Name=AFUN001145-RA
+3R      Anfun.sg        gene    138506  155752  .       -       .       ID=AFUN001144-RA.path1;Name=AFUN001144-RA
+3R      Anfun.sg        CDS    156135  157030  .       +       .       ID=AFUN001143-RA.path1;Name=AFUN001143-RA
+3R      Anfun.sg        gene    158474  162692  .       +       .       ID=AFUN001142-RA.path1;Name=AFUN001142-RA
+3R      Anfun.sg        gene    163179  166311  .       -       .       ID=AFUN001141-RA.path1;Name=AFUN001141-RA
+3R      Anfun.sg        CDS    174682  180181  .       +       .       ID=AFUN001139-RA.path1;Name=AFUN001139-RA
+3R      Anfun.sg        gene    218382  250322  .       -       .       ID=AFUN005782-RA.path1;Name=AFUN005782-RA
+3R      Anfun.sg        gene    262416  262660  .       -       .       ID=AFUN005783-RA.path1;Name=AFUN005783-RA
+3R      Anfun.sg        CDS    297374  302451  .       -       .       ID=AFUN005784-RA.path1;Name=AFUN005784-RA
