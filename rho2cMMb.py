@@ -77,10 +77,16 @@ https://doi.org/10.1534/genetics.105.044800
 """
 import argparse
 import sys
+import numpy as np
+
+CHROM_DICT = {"X": 17661987, "3L": 42939845, "3R": 50894052, "3": 93833897,
+              "2R": 55000152, "2L": 44479186, "2": 99479338}
+MAP_DICT = {"X": 44.7, "3L": 89.1, "3R": 90.9, "3": 180,
+            "2R": 94.8, "2L": 63.2, "2": 158}
 
 
 def read_helmet(helm_file):
-    """Parses LDHelmet output and parses SNP position and Rho estimates
+    """Parse LDHelmet output and parses SNP position and Rho estimates.
 
     Parameters
     ----------
@@ -113,7 +119,7 @@ def read_helmet(helm_file):
 
 
 def read_jump(jump_file):
-    """Parses LDJump output and parses SNP position and Rho estimates
+    """Parse LDJump output and parses SNP position and Rho estimates.
 
     Parameters
     ----------
@@ -143,8 +149,68 @@ def read_jump(jump_file):
     return (snp_list, rho_list)
 
 
+def read_relernn(relernn_file, mapdict, chromdict, boots=False):
+    """Parse relernn predict output and parses SNP position and Rho estimates.
+
+    Parameters
+    ----------
+    relernn_file: str
+        file containing data from ReLERNN
+
+    Returns
+    -------
+    start_list: List[int]
+        list of starting snp positions
+    c_rate_list: List[float]
+        list of recombination rate estimates between snps
+
+    """
+    with open(relernn_file) as rhomap:
+        line = rhomap.readline()
+        line = rhomap.readline()
+        chrom = line.split()[0]
+
+    map_size = mapdict[chrom]
+    chrom_len = chromdict[chrom]
+
+    cMMb_out = open(f"{chrom}.cMMb.out.txt", 'w')
+    cMMb_out.write("pos\tcM\tcMMb\tcumcM\tmap_pos\n")
+    shapeit_out = open(f"{chrom}.shapeit.out.txt", 'w')
+    shapeit_out.write("pos\tchr\tcM\tmap_pos\n")
+
+    avg_bp = []
+    weights = []
+    cum_cM = 0
+    with open(relernn_file) as rhomap:
+        line = rhomap.readline()
+        for line in rhomap:
+            x = line.split()
+            chrom = x[0]
+            start = int(x[1])
+            end = int(x[2])
+            c_rate = float(x[4])
+            #
+            chrom_len = chromdict[chrom]
+            bps = end - start
+            weights.append(bps / chrom_len)
+            avg_bp.append(0.01/c_rate)
+            #
+            cM = bps * c_rate
+            cum_cM += cM
+            map_pos = cum_cM/map_size
+            cMMb_out.write(f"{start}\t{cM}\t{cM*1e6}\t{cum_cM}\t{map_pos}\n")
+            shapeit_out.write(f"{start}\t{chrom}\t{cum_cM}\t{map_pos}\n")
+    cMMb_out.close()
+    shapeit_out.close()
+    avg_bp_arr = np.array(avg_bp)
+    weights_arr = np.array(weights)
+    print(f"Avg bp cM:{np.mean(avg_bp_arr)}")
+    print(f"Weighted Avg bp cM:{np.average(avg_bp_arr, weights=weights_arr)}")
+    return None
+
+
 def read_ismc(ismc_file):
-    """Parses a bedgraph output and parses SNP position and Rho estimates
+    """Parse a bedgraph output and parses SNP position and Rho estimates.
 
     Parameters
     ----------
@@ -175,7 +241,7 @@ def read_ismc(ismc_file):
 
 
 def write_recomb(pos_list, cMMb_list, cM_list, prho_list):
-    """Write output to file
+    """Write output to file.
 
     Parameters
     ----------
@@ -203,7 +269,7 @@ def write_recomb(pos_list, cMMb_list, cM_list, prho_list):
 
 
 def recomb_map(snp_list, rho_list, Ne, map_size):
-    """Standard recombination map conversion
+    """Recombination map conversion.
 
     Parameters
     ----------
@@ -247,7 +313,7 @@ def recomb_map(snp_list, rho_list, Ne, map_size):
 
 
 def recomb_map_booker(snp_list, rho_snp_list, map_size):
-    """Following the conversion method of Booker et al 2017 in genetics
+    """Conversion method of Booker et al 2017 in genetics.
 
     Parameters
     ----------
@@ -300,8 +366,6 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog="sys.argv[0].py",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--ld_file", required=True, help="recombination file")
-    parser.add_argument("--map_size", type=float, default=1,
-                        help="chrom map size else will use prop of total rho")
     parser.add_argument("--format", type=str, required=True,
                         choices=("LDhelmet", "LDJump", "iSMC", "ReLERNN"),
                         help="format of LD file")
@@ -311,12 +375,12 @@ def parse_args(args_in):
     return (parser.parse_args(args_in))
 
 
-if __name__ == "__main__":
+def main():
+    """Run main function."""
     args = parse_args(sys.argv[1:])
     # =========================================================================
     #  Gather args
     # =========================================================================
-    MAP_SIZE = args.map_size
     FORMAT = args.format
     LD_FILE = args.ld_file
     BOOKER = args.booker
@@ -324,17 +388,21 @@ if __name__ == "__main__":
     # =========================================================================
     #  Main executions
     # =========================================================================
-    if FORMAT == "LDhelmet":
-        SNP_LIST, RHO_LIST = read_helmet(LD_FILE)
-    elif FORMAT == "LDJump":
-        SNP_LIST, RHO_LIST = read_jump(LD_FILE)
-    elif FORMAT == "iSMC":
-        SNP_LIST, RHO_LIST = read_ismc(LD_FILE)
-    elif FORMAT == "ReLERNN":
-        pass
-        # SNP_LIST, RHO_LIST = read_relernn(LD_FILE)
-    if BOOKER is True:
-        POS, CMMB, CM, PRHO = recomb_map_booker(SNP_LIST, RHO_LIST, MAP_SIZE)
+    if FORMAT == "ReLERNN":
+        read_relernn(LD_FILE, MAP_DICT, CHROM_DICT)
     else:
-        POS, CMMB, CM, PRHO = recomb_map(SNP_LIST, RHO_LIST, NE, MAP_SIZE)
-    write_recomb(POS, CMMB, CM, PRHO)
+        if FORMAT == "LDhelmet":
+            SNP_LIST, RHO_LIST = read_helmet(LD_FILE)
+        elif FORMAT == "LDJump":
+            SNP_LIST, RHO_LIST = read_jump(LD_FILE)
+        elif FORMAT == "iSMC":
+            SNP_LIST, RHO_LIST = read_ismc(LD_FILE)
+        if BOOKER is True:
+            POS, CMMB, CM, PRHO = recomb_map_booker(SNP_LIST, RHO_LIST, MAP_DICT)
+        else:
+            POS, CMMB, CM, PRHO = recomb_map(SNP_LIST, RHO_LIST, NE, MAP_DICT)
+        write_recomb(POS, CMMB, CM, PRHO)
+
+
+if __name__ == "__main__":
+    main()
