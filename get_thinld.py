@@ -20,20 +20,11 @@ import numcodecs
 import sys
 import numpy as np
 import argparse
+from os import path
 from dataclasses import dataclass
 
 
-@dataclass
-class AllelData:
-    """Class to hold allel data."""
-
-    __slots__ = ["name", "gt", "pos"]
-    name: str
-    gt: list
-    pos: list
-
-
-def vcf2zarr(chroms, zarr_path, vcf_path):
+def vcf2zarr(chrom, zarr_path, vcf_path):
     """Convert vcf to zarr.
 
     Parameters
@@ -50,14 +41,16 @@ def vcf2zarr(chroms, zarr_path, vcf_path):
     None.
 
     """
-    for c in chroms:
-        allel.vcf_to_zarr(vcf_path, zarr_path, group=c,
+    if path.isdir(path.join(zarr_path, chrom)):
+        pass
+    else:
+        allel.vcf_to_zarr(vcf_path, zarr_path, group=chrom,
                           fields='*', alt_number=2, log=sys.stdout,
                           compressor=numcodecs.Blosc(cname='zstd', clevel=1, shuffle=False))
     return None
 
 
-def load_zarr(chroms, zarr_path):
+def load_zarr(chrom, zarr_path):
     """Load zarr to GenotypeArray.
 
     Parameters
@@ -73,13 +66,9 @@ def load_zarr(chroms, zarr_path):
 
     """
     callset = zarr.open_group(zarr_path, mode='r')
-    chrom_dict = {}
-    for c in chroms:
-        pos = allel.SortedIndex(callset[f'{c}/variants/POS'])
-        gt = allel.GenotypeArray(callset[f'{c}/calldata/GT'])
-        chrom_dict[c] = AllelData(c, gt, pos)
-
-    return chrom_dict
+    pos = allel.SortedIndex(callset[f'{chrom}/variants/POS'])
+    gt = allel.GenotypeArray(callset[f'{chrom}/calldata/GT'])
+    return gt, pos
 
 
 def ld_prune(gn, pos, size=500, step=200, threshold=.1, n_iter=5):
@@ -145,7 +134,7 @@ def filter_fx(gt, pos):
     return gf, posflt
 
 
-def get_ldthin_pos(chrom_dict, n_snps, threshold, n_iter, size=500, step=200):
+def get_ldthin_pos(gt, pos, n_snps, threshold, n_iter, size=500, step=200):
     """Return a list of sites that are unlinked.
 
     Parameters
@@ -165,26 +154,21 @@ def get_ldthin_pos(chrom_dict, n_snps, threshold, n_iter, size=500, step=200):
         DESCRIPTION.
 
     """
-    thinld_dict = {}
-    for chrom in chrom_dict.keys():
-        pos = chrom_dict[chrom].pos
-        gt = chrom_dict[chrom].gt
-        gt, pos = filter_fx(gt, pos)  # possibly not needed
-        gn = gt.to_n_alt()
-        # random downsample to reduce LD
-        n = n_snps  # number of SNPs to choose randomly
-        vidx = np.random.choice(gn.shape[0], n, replace=False)
-        vidx.sort()
-        gnr = gn.take(vidx, axis=0)
-        posflt = pos[vidx]
-        # thinld
-        thinpos, gnu = ld_prune(gnr, posflt, size=size, step=step, threshold=threshold, n_iter=n_iter)
-        thinld_dict[chrom] = thinpos
+    gt, pos = filter_fx(gt, pos)  # possibly not needed
+    gn = gt.to_n_alt()
+    # random downsample to reduce LD
+    n = n_snps  # number of SNPs to choose randomly
+    vidx = np.random.choice(gn.shape[0], n, replace=False)
+    vidx.sort()
+    gnr = gn.take(vidx, axis=0)
+    posflt = pos[vidx]
+    # thinld
+    thinpos, gnu = ld_prune(gnr, posflt, size=size, step=step, threshold=threshold, n_iter=n_iter)
 
-    return thinld_dict
+    return thinpos
 
 
-def write_ldthin_pos(thinpos_dict):
+def write_ldthin_pos(chrom, thinpos):
     """Write positions to file.
 
     Parameters
@@ -197,10 +181,9 @@ def write_ldthin_pos(thinpos_dict):
     None.
 
     """
-    for nchr in thinpos_dict.keys():
-        with open(f"{nchr}.thin.pos.txt", 'w') as tpos:
-            for pos in thinpos_dict[nchr]:
-                tpos.write(f"{nchr}\t{pos}\n")
+    with open(f"{chrom}.thin.pos.txt", 'w') as tpos:
+        for pos in thinpos:
+            tpos.write(f"{chrom}\t{pos}\n")
 
     return None
 
@@ -209,7 +192,7 @@ def parse_args(args_in):
     """Parse args."""
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--chroms", nargs='+', action="append")
+    parser.add_argument("--chrom", type=str)
     parser.add_argument("--zarr", type=str, help="where to write zarr")
     parser.add_argument("--vcf", type=str, help="where to get vcf, will use glob")
     parser.add_argument("--n_snp", type=int, default=500000, help="number of snps"
@@ -227,7 +210,7 @@ def main():
     # =========================================================================
     #  Gather args
     # =========================================================================
-    chroms = args.chroms  # ["2", "3", "X"]
+    chrom = args.chrom  # ["2", "3", "X"]
     vcf_path = args.vcf
     zarr_path = args.zarr
     n_snps = args.n_snp
@@ -236,10 +219,10 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
-    vcf2zarr(chroms, zarr_path, vcf_path)
-    chrom_dict = load_zarr(chroms, zarr_path)
-    thinpos_dict = get_ldthin_pos(chrom_dict, n_snps, threshold, n_iter)
-    write_ldthin_pos(thinpos_dict)
+    vcf2zarr(chrom, zarr_path, vcf_path)
+    gt, pos = load_zarr(chrom, zarr_path)
+    thinpos = get_ldthin_pos(gt, pos, n_snps, threshold, n_iter)
+    write_ldthin_pos(chrom, thinpos)
 
 
 if __name__ == "__main__":
