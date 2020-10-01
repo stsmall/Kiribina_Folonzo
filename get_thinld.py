@@ -51,7 +51,7 @@ def vcf2zarr(chroms, zarr_path, vcf_path):
 
     """
     for c in chroms:
-        allel.vcf_to_zarr(vcf_path, zarr_path, group=c.split(".")[1],
+        allel.vcf_to_zarr(vcf_path, zarr_path, group=c,
                           fields='*', alt_number=2, log=sys.stdout,
                           compressor=numcodecs.Blosc(cname='zstd', clevel=1, shuffle=False))
     return None
@@ -209,7 +209,7 @@ def parse_args(args_in):
     """Parse args."""
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--chroms", nargs='+')
+    parser.add_argument("--chroms", nargs='+', action="append")
     parser.add_argument("--zarr", type=str, help="where to write zarr")
     parser.add_argument("--vcf", type=str, help="where to get vcf, will use glob")
     parser.add_argument("--n_snp", type=int, default=500000, help="number of snps"
