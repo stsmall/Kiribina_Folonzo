@@ -169,6 +169,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
         line = rhomap.readline()
         line = rhomap.readline()
         chrom = line.split()[0]
+        start = line.split()[1]
 
     map_size = mapdict[chrom]
     chrom_len = chromdict[chrom]
@@ -177,7 +178,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
     cMMb_out.write("pos\tcM\tcMMb\tcumcM\tmap_pos\n")
     shapeit_out = open(f"{chrom}.shapeit.out.txt", 'w')
     shapeit_out.write("pos\tchr\tcM\tmap_pos\n")
-    shapeit_out.write(f"1\t{chrom}\t0\t0\n")
+    shapeit_out.write(f"{start}\t{chrom}\t0\t0\n")
 
     avg_bp = []
     weights = []
