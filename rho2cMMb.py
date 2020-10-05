@@ -205,7 +205,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             cum_cM_total += cM
             cumcM_list.append(cum_cM_total)
         for snp, cm, ccm in zip(snp_list, cM_list, cumcM_list):
-            map_pos = (cm/cum_cM_total) * map_size
+            map_pos = (ccm/cum_cM_total) * map_size
             cMMb_out.write(f"{snp}\t{cm}\t{cm*1e6}\t{ccm}\t{map_pos}\n")
             shapeit_out.write(f"{snp}\t{chrom}\t{ccm}\t{map_pos}\n")
     cMMb_out.close()
