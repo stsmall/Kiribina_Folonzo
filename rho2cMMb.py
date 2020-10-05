@@ -195,9 +195,9 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             weights.append(bps / chrom_len)
             avg_bp.append(0.01/c_rate)
             #
-            cM = bps * c_rate
+            cM = (bps * c_rate) / .01
             cum_cM += cM
-            map_pos = cum_cM/map_size
+            map_pos = cum_cM * map_size
             cMMb_out.write(f"{start}\t{cM}\t{cM*1e6}\t{cum_cM}\t{map_pos}\n")
             shapeit_out.write(f"{start}\t{chrom}\t{cum_cM}\t{map_pos}\n")
     cMMb_out.close()
