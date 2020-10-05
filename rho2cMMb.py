@@ -178,7 +178,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
     cMMb_out.write("pos\tcM\tcMMb\tcumcM\tmap_pos\n")
     shapeit_out = open(f"{chrom}.shapeit.out.txt", 'w')
     shapeit_out.write("pos\tchr\tcM\tmap_pos\n")
-    shapeit_out.write(f"{start}\t{chrom}\t0\t0\n")
+    shapeit_out.write(f"1\t{chrom}\t0\t0\n")
 
     avg_bp = []
     weights = []
@@ -201,7 +201,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             avg_bp.append(0.01/c_rate)
             #
             cM = (bps * c_rate) / .01
-            snp_list.append(end)
+            snp_list.append(start)
             cM_list.append(cM)
             cum_cM_total += cM
             cumcM_list.append(cum_cM_total)
