@@ -70,7 +70,7 @@ def read_estsfs(ingroup, estOut):
     return est_dict
 
 
-def polarize_vcf(vcfFile, est_dict):
+def addAA2vcf(vcfFile, est_dict):
     """Add AA and MajProb to INFO column.
 
     Parameters
@@ -141,7 +141,8 @@ def main():
     #  Main executions
     # =========================================================================
     est_dict = read_estsfs(estFile, counts)
-    polarize_vcf(vcfFile, est_dict)
+    addAA2vcf(vcfFile, est_dict)
+    #polarize_vcf()
 
 
 if __name__ == "__main__":
