@@ -24,28 +24,26 @@ def read_estsfs(ingroup, estOut):
         DESCRIPTION.
 
     """
-    site_count = 0
     est_dict = {}
-    contig = list(anc_dict.keys()[0]).split("_")[0]
-    ancFiles = glob.glob(f"{contig}.estsfs*.anc")
-    for ancFile in ancFiles:
-        with open(ancFile, 'r') as est:
-            for line in est:
-                if line.startswith('0'):
-                    pass
-                else:
-                    est_line = line.split()
-                    est_dict[site_count] = float(est_line[2])
-                    site_count += 1
+    with open(estOut, 'r') as est:
+        for line in est:
+            line = line.split()
+            chrom = line[0]
+            pos = line[1]
+            prob_maj = line[2]
+            est_dict[f"{chrom}_{pos}"] = [prob_maj]
 
-    polar_dict = {}
-    for i, site in enumerate(anc_dict.keys()):
-        polar_dict[site] = est_dict[str(i)]
+    with open(ingroup, 'r') as counts:
+        for line in counts:
+            line = line.split()
+            # find maj count
+            # try to add to est_dict
+            # if not exists then add as [0.0, maj]
 
-    return polar_dict
+    return est_dict
 
 
-def polarize_vcf(vcfFile, polar_dict):
+def polarize_vcf(vcfFile, est_dict):
     """Add AA and MajProb to INFO column.
 
     Parameters
@@ -61,43 +59,27 @@ def polarize_vcf(vcfFile, polar_dict):
 
     """
     outfile = vcfFile.rstrip("vcf.gz")
-    pvcf = gzip.open(f"{outfile}.AA.vcf.gz", 'wb')
-
-    ancbed = gzip.open(f"{outfile}.anc.bed.gz", 'w')
+    pvcf = gzip.open(f"{outfile}.anc.vcf.gz", 'wb')
+    for k in est_dict.keys():
+        chrom, pos = k.split("_")
+        break
+    ancbed = gzip.open(f"{chrom}.anc.bed.gz", 'wb')
 
     with gzip.open(vcfFile, 'rb') as vcf:
         for line in vcf:
             if line.startswith("#"):
                 pvcf.write(line)
             else:
-                vcf_line = line.split()
-                chrom = vcf_line[0]
-                pos = vcf_line[1]
-                ref = vcf_line[3]
-                alt = vcf_line[4]
+                line = line.split()
+                chrom = line[0]
+                pos = line[1]
                 site = f'{chrom}_{pos}'
-                aa = vcf_line[8].split(";")
-                try:
-                    maj_prob = polar_dict[site]
-                except KeyError:
-                    aa.insert(0, 'AA=NA;MajProb=NA')
-                    vcf_line[8] = ";".join(aa)
-                    vcf_tab = "\t".join(vcf_line)
-                    pvcf.write(f'{vcf_tab}\n')
-                    ancbed.write(f'{chrom}\t{pos-1}\t{pos}\tNA\tNA\n')
-                    continue
-                # AC=X in INFO field
-                ac, af, an, *_ = vcf_line[8].split(";")
-                c_alt = int(ac.split("=")[1])
-                c_ref = int(an.split("=")[1]) - int(ac.split("=")[1])
-                if c_ref >= c_alt:
-                    maj = ref
-                else:
-                    maj = alt
-                aa.insert(0, f'AA={maj};MajProb={maj_prob}')
-                vcf_line[8] = ";".join(aa)
-                ancbed.write(f'{chrom}\t{pos-1}\t{pos}\t{maj}\t{maj_prob}\n')
-                vcf_tab = "\t".join(vcf_line)
+                aa = line[8].split(";")
+                maj_prob, maj_allele = est_dict[site]
+                aa.insert(0, f'AA={maj_allele};AAProb={maj_prob}')
+                line[8] = ";".join(aa)
+                ancbed.write(f'{chrom}\t{pos-1}\t{pos}\t{maj_allele}\t{maj_prob}\n')
+                vcf_tab = "\t".join(line)
                 pvcf.write(f'{vcf_tab}\n')
     pvcf.close()
     ancbed.close()
@@ -111,7 +93,8 @@ def parse_args(args_in):
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', "--vcfFile", type=str, required=True,
                         help="vcf file")
-    parser.add_argument('-i', "--ingroup", type=str, help="counts file for ingroup")
+    parser.add_argument('-i', "--ingroup", type=str, help="counts file for "
+                        "ingroup")
     parser.add_argument('-e', "--estFile", type=str, required=True,
                         help="est-sfs output with 1st and 2nd columns having CHR"
                         "POS")
