@@ -10,18 +10,19 @@ est-sfs will also produce a unfolded site frequence spectrum.
 Example
 -------
 
-    $ python polarize_vcf.py -v FOO.vcf.gz -i ingroup -o outgroup1 outgroup2 -h 20 2 2
+    $ python est-sfs_format.py -i ingroup -o outgroup1 outgroup2
 
 
 Notes
 -----
     1) requires the allele counts from output of vcftools --counts
-    2) vcf files must be gzipped
+    2) count files must be zipped
 
 """
 import sys
 import gzip
 import argparse
+from collections import defaultdict
 
 
 def count_allele(ancdict, counts_line):
@@ -43,25 +44,22 @@ def count_allele(ancdict, counts_line):
 
     """
     bp_order = ["A", "C", "G", "T"]
-    chrom = counts_line[0]
-    pos = counts_line[1]
-    hap = counts_line[3]
     anc_list = [0, 0, 0, 0]  # A C G T
-    # first allele
-    ref, ref_count = counts_line[4].split(":")
-    bp_ix = bp_order.index(ref)
-    anc_list[bp_ix] += int(ref_count)
-    # second allele
-    alt, alt_count = counts_line[5].split(":")
-    bp_ix = bp_order.index(alt)
-    anc_list[bp_ix] += int(alt_count)
 
-    site = f'{chrom}_{pos}'
-    try:
-        ancdict[site].append(anc_list)
-    except KeyError:
-        pass
-    return ancdict, hap
+    ref, ref_count = counts_line[4].split(":")
+    if len(ref) == 1 and int(ref_count) > 0:
+        bp_ix = bp_order.index(ref)
+        anc_list[bp_ix] = 1
+    else:
+        try:
+            alt, alt_count = counts_line[5].split(":")
+            if len(alt) == 1 and int(alt_count) > 0:
+                bp_ix = bp_order.index(alt)
+                anc_list[bp_ix] = 1
+        except IndexError:
+            pass
+
+    return anc_list
 
 
 def estsfs_format(fileIngroup, fileOutgroup):
@@ -82,10 +80,10 @@ def estsfs_format(fileIngroup, fileOutgroup):
         returns the max of the haplist
 
     """
-    anc_dict = {}
+    anc_dict = defaultdict(list)
     ingroup = fileIngroup
     outgroups = fileOutgroup
-
+    anc_dict = {}
     # get ingroup counts
     with gzip.open(ingroup, 'r') as counts:
         line = next(counts)  # skip header
@@ -94,15 +92,20 @@ def estsfs_format(fileIngroup, fileOutgroup):
             chrom = counts_line[0]
             pos = counts_line[1]
             site = f'{chrom}_{pos}'
-            anc_dict[site] = []
-            anc_dict, hap = count_allele(anc_dict, counts_line)
+            counts = count_allele(counts_line)
+            anc_dict[site].append(counts)
     # get outgroup counts
     for file in outgroups:
         with gzip.open(file, 'r') as counts:
             line = next(counts)  # skip header
             for line in counts:
                 counts_line = line.split()
-                anc_dict, hap = count_allele(anc_dict, counts_line)
+                chrom = counts_line[0]
+                pos = counts_line[1]
+                site = f'{chrom}_{pos}'
+                if site in anc_dict:
+                    counts = count_allele(counts_line)
+                    anc_dict[site].append(counts)
 
     return anc_dict
 
@@ -121,14 +124,14 @@ def estsfs_infiles(anc_dict):
 
     """
     # create input file
-    contig = list(anc_dict.keys()[0]).split("_")[0]
-    with open(f"{contig}.est.infile", 'w') as est:
+    chrom = list(anc_dict.keys()[0]).split("_")[0]
+    with open(f"{chrom}.est.infile", 'w') as est:
         for key in anc_dict:
             counts = [",".join(x) for x in anc_dict[key]]
             est.write(f'{" ".join(counts)}\n')
     # create config file
-    n_outgroups = len(counts)
-    config = open("config.file", 'w')
+    n_outgroups = len(counts) - 1
+    config = open(f"{chrom}.config.file", 'w')
     config.write(f'n_outgroup={n_outgroups}\nmodel 1\nnrandom 1')
 
     return None
