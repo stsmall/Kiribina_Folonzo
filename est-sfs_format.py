@@ -124,7 +124,8 @@ def estsfs_infiles(anc_dict):
 
     """
     # create input file
-    chrom = list(anc_dict.keys()[0]).split("_")[0]
+    first = next(iter(anc_dict.keys()))
+    chrom, pos = first.split("_")
     with open(f"{chrom}.est.infile", 'w') as est:
         for key in anc_dict:
             counts = [",".join(x) for x in anc_dict[key]]

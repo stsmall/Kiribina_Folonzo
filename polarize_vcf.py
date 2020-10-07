@@ -1,14 +1,29 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 11 13:44:12 2018
+Created on Fri Sep 11 12:04:20 2020
+@author: Scott T. Small
 
-@author: scott
+Use the est-sfs program to add probabilistic ancestral states to a VCF file.
+est-sfs will also produce a unfolded site frequence spectrum.
+
+Example
+-------
+
+    $ python polarize_vcf.py -v VCF -i ingroup -e estsfsFile
+
+
+Notes
+-----
+    1) requires the allele counts from output of vcftools --counts
+    2) count files must be zipped
+
 """
 
 import argparse
 import gzip
 import sys
+
 
 def read_estsfs(ingroup, estOut):
     """Read est-sfs outfiles.
@@ -31,14 +46,26 @@ def read_estsfs(ingroup, estOut):
             chrom = line[0]
             pos = line[1]
             prob_maj = line[2]
-            est_dict[f"{chrom}_{pos}"] = [prob_maj]
+            site = f'{chrom}_{pos}'
+            est_dict[site] = [prob_maj]
 
-    with open(ingroup, 'r') as counts:
+    with gzip.open(ingroup, 'r') as counts:
+        line = next(counts)  # skip header
         for line in counts:
             line = line.split()
-            # find maj count
-            # try to add to est_dict
-            # if not exists then add as [0.0, maj]
+            chrom = line[0]
+            pos = line[1]
+            site = f'{chrom}_{pos}'
+            ref, ref_count = line[4].split(":")
+            alt, alt_count = line[5].split(":")
+            if int(ref_count) > int(alt_count):
+                maj = ref
+            else:
+                maj = alt
+            try:
+                est_dict[site].extend(maj)
+            except KeyError:
+                est_dict[site] = [0.0, maj]
 
     return est_dict
 
@@ -59,13 +86,13 @@ def polarize_vcf(vcfFile, est_dict):
 
     """
     outfile = vcfFile.rstrip("vcf.gz")
-    pvcf = gzip.open(f"{outfile}.anc.vcf.gz", 'wb')
-    for k in est_dict.keys():
-        chrom, pos = k.split("_")
-        break
-    ancbed = gzip.open(f"{chrom}.anc.bed.gz", 'wb')
+    pvcf = gzip.open(f"{outfile}.anc.vcf.gz", 'wt')
 
-    with gzip.open(vcfFile, 'rb') as vcf:
+    first = next(iter(est_dict.keys()))
+    chrom, pos = first.split("_")
+    ancbed = gzip.open(f"{chrom}.anc.bed.gz", 'wt')
+
+    with gzip.open(vcfFile, 'r') as vcf:
         for line in vcf:
             if line.startswith("#"):
                 pvcf.write(line)
@@ -113,8 +140,8 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
-    polar_dict = read_estsfs(estFile, counts)
-    polarize_vcf(vcfFile, polar_dict)
+    est_dict = read_estsfs(estFile, counts)
+    polarize_vcf(vcfFile, est_dict)
 
 
 if __name__ == "__main__":
