@@ -146,7 +146,7 @@ def estsfs_infiles(anc_dict, n_outgroup):
             while len(counts) < (n_outgroup + 1):
                 counts.append('0,0,0,0')
             est.write(f'{" ".join(counts)}\n')
-            out.write(f"{chrom}\t{pos}")
+            out.write(f"{chrom}\t{pos}\n")
     out.close()
     # create config file
     n_outgroups = len(counts) - 1
