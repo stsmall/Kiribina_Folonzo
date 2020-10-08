@@ -104,10 +104,10 @@ def addAA2vcf(vcfFile, est_dict):
                 pos = line[1]
                 pos = int(pos)
                 site = f'{chrom}_{pos}'
-                aa = line[8].split(";")
+                aa = line[7].split(";")
                 maj_prob, maj_allele = est_dict[site]
                 aa.insert(0, f'AA={maj_allele};AAProb={maj_prob}')
-                line[8] = ";".join(aa)
+                line[7] = ";".join(aa)
                 ancbed.write(f'{chrom}\t{pos-1}\t{pos}\t{maj_allele}\t{maj_prob}\n')
                 vcf_tab = "\t".join(line)
                 pvcf.write(f'{vcf_tab}\n')
