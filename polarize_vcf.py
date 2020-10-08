@@ -50,7 +50,6 @@ def read_estsfs(ingroup, estOut):
             est_dict[site] = [prob_maj]
 
     with gzip.open(ingroup, 'r') as counts:
-        line = line.decode()
         line = next(counts)  # skip header
         for line in counts:
             line = line.decode()
