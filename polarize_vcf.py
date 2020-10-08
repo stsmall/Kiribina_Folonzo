@@ -136,11 +136,11 @@ def main():
     # =========================================================================
     estFile = args.estFile
     vcfFile = args.vcfFile
-    counts = args.ingroup
+    ingroup_counts = args.ingroup
     # =========================================================================
     #  Main executions
     # =========================================================================
-    est_dict = read_estsfs(estFile, counts)
+    est_dict = read_estsfs(ingroup_counts, estFile)
     addAA2vcf(vcfFile, est_dict)
     #polarize_vcf()
 
