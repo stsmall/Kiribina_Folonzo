@@ -47,7 +47,8 @@ def count_allele(counts_line, ingroup):
     anc_list = [0, 0, 0, 0]  # A C G T
 
     ref, ref_count = counts_line[4].split(":")
-    if len(ref) == 1 and int(ref_count) > 0:
+    ref_count = int(ref_count)
+    if len(ref) == 1 and ref_count > 0:
         bp_ix = bp_order.index(ref)
         if ingroup:
             anc_list[bp_ix] += ref_count
@@ -56,7 +57,8 @@ def count_allele(counts_line, ingroup):
     else:
         try:
             alt, alt_count = counts_line[5].split(":")
-            if len(alt) == 1 and int(alt_count) > 0:
+            alt_count = int(alt_count)
+            if len(alt) == 1 and alt_count > 0:
                 try:
                     bp_ix = bp_order.index(alt)
                     if ingroup:
