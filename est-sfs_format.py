@@ -101,7 +101,7 @@ def estsfs_format(file_ingroup, file_outgroup):
             chrom = line[0]
             pos = line[1]
             site = f'{chrom}_{pos}'
-            anc_counts = count_allele(line)
+            anc_counts = count_allele(line, ingroup=True)
             anc_dict[site].append(anc_counts)
     # get outgroup counts
     for file in outgroups:
@@ -114,7 +114,7 @@ def estsfs_format(file_ingroup, file_outgroup):
                 pos = line[1]
                 site = f'{chrom}_{pos}'
                 if site in anc_dict:
-                    anc_counts = count_allele(line)
+                    anc_counts = count_allele(line, ingroup=False)
                     anc_dict[site].append(anc_counts)
 
     return anc_dict
@@ -133,7 +133,6 @@ def estsfs_infiles(anc_dict):
     None.
 
     """
-    breakpoint()
     # create input file
     first = next(iter(anc_dict.keys()))
     chrom = first.split("_")[0]
