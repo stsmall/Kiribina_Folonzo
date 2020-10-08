@@ -23,7 +23,7 @@ import sys
 import gzip
 import argparse
 from collections import defaultdict
-import tqdm as tqdm
+
 
 
 def count_allele(counts_line):
@@ -128,9 +128,10 @@ def estsfs_infiles(anc_dict):
     None.
 
     """
+    breakpoint()
     # create input file
     first = next(iter(anc_dict.keys()))
-    chrom, pos = first.split("_")
+    chrom = first.split("_")[0]
     with open(f"{chrom}.est.infile", 'w') as est:
         for key in anc_dict:
             counts = [",".join(x) for x in anc_dict[key]]
@@ -139,8 +140,6 @@ def estsfs_infiles(anc_dict):
     n_outgroups = len(counts) - 1
     config = open(f"{chrom}.config.file", 'w')
     config.write(f'n_outgroup={n_outgroups}\nmodel 1\nnrandom 1')
-
-    return None
 
 
 def parse_args(args_in):
@@ -151,7 +150,7 @@ def parse_args(args_in):
                         help="ingroup/focalgroup counts")
     parser.add_argument('-o', "--outgroup", type=str, nargs='+', required=True,
                         help="outgroup counts")
-    return(parser.parse_args(args_in))
+    return parser.parse_args(args_in)
 
 
 def main():
