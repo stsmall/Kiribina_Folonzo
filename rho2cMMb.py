@@ -200,7 +200,10 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             chrom_len = chromdict[chrom]
             bps = end - start
             weights.append(bps / chrom_len)
-            avg_bp.append(0.01/c_rate)
+            try:
+                avg_bp.append(0.01/c_rate)
+            except ZeroDivisionError:
+                breakpoint()
             #
             cM = (bps * c_rate) / .01
             snp_list.append(start)
