@@ -195,7 +195,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             end = int(x[2])
             c_rate = float(x[4])
             if c_rate == 0.0:
-                c_rate == float(x[-1])
+                c_rate = float(x[-1])
             #
             chrom_len = chromdict[chrom]
             bps = end - start
