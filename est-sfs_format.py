@@ -25,7 +25,7 @@ import argparse
 from collections import defaultdict
 
 
-def count_allele(ancdict, counts_line):
+def count_allele(counts_line):
     """Count alleles.
 
     Parameters
@@ -88,24 +88,26 @@ def estsfs_format(fileIngroup, fileOutgroup):
     with gzip.open(ingroup, 'r') as counts:
         line = next(counts)  # skip header
         for line in counts:
-            counts_line = line.split()
-            chrom = counts_line[0]
-            pos = counts_line[1]
+            line = line.decode()
+            line = line.split()
+            chrom = line[0]
+            pos = line[1]
             site = f'{chrom}_{pos}'
-            counts = count_allele(counts_line)
-            anc_dict[site].append(counts)
+            anc_counts = count_allele(line)
+            anc_dict[site].append(anc_counts)
     # get outgroup counts
     for file in outgroups:
         with gzip.open(file, 'r') as counts:
             line = next(counts)  # skip header
             for line in counts:
-                counts_line = line.split()
-                chrom = counts_line[0]
-                pos = counts_line[1]
+                line = line.decode()
+                line = line.split()
+                chrom = line[0]
+                pos = line[1]
                 site = f'{chrom}_{pos}'
                 if site in anc_dict:
-                    counts = count_allele(counts_line)
-                    anc_dict[site].append(counts)
+                    anc_counts = count_allele(line)
+                    anc_dict[site].append(anc_counts)
 
     return anc_dict
 
