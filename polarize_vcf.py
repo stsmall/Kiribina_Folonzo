@@ -102,6 +102,7 @@ def addAA2vcf(vcfFile, est_dict):
                 line = line.split()
                 chrom = line[0]
                 pos = line[1]
+                pos = int(pos)
                 site = f'{chrom}_{pos}'
                 aa = line[8].split(";")
                 maj_prob, maj_allele = est_dict[site]
