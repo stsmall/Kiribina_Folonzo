@@ -138,16 +138,21 @@ def estsfs_infiles(anc_dict, n_outgroup):
     # create input file
     first = next(iter(anc_dict.keys()))
     chrom = first.split("_")[0]
+    out = open(f"{chrom}.pos.txt", 'w')
     with open(f"{chrom}.est.infile", 'w') as est:
         for key in anc_dict:
+            chrom, pos = key.split("_")
             counts = [",".join(map(str, x)) for x in anc_dict[key]]
             while len(counts) < (n_outgroup + 1):
                 counts.append('0,0,0,0')
             est.write(f'{" ".join(counts)}\n')
+            out.write(f"{chrom}\t{pos}")
+    out.close()
     # create config file
     n_outgroups = len(counts) - 1
     config = open(f"{chrom}.config.file", 'w')
     config.write(f'n_outgroup={n_outgroups}\nmodel 1\nnrandom 1')
+    config.close()
 
 
 def parse_args(args_in):
