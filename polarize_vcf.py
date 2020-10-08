@@ -50,8 +50,10 @@ def read_estsfs(ingroup, estOut):
             est_dict[site] = [prob_maj]
 
     with gzip.open(ingroup, 'r') as counts:
+        line = line.decode()
         line = next(counts)  # skip header
         for line in counts:
+            line = line.decode()
             line = line.split()
             chrom = line[0]
             pos = line[1]
@@ -94,6 +96,7 @@ def addAA2vcf(vcfFile, est_dict):
 
     with gzip.open(vcfFile, 'r') as vcf:
         for line in vcf:
+            line = line.decode()
             if line.startswith("#"):
                 pvcf.write(line)
             else:
