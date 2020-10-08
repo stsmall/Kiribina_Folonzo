@@ -122,7 +122,7 @@ def estsfs_format(file_ingroup, file_outgroup):
     return anc_dict
 
 
-def estsfs_infiles(anc_dict):
+def estsfs_infiles(anc_dict, n_outgroup):
     """Run est-sfs.
 
     Parameters
@@ -141,6 +141,8 @@ def estsfs_infiles(anc_dict):
     with open(f"{chrom}.est.infile", 'w') as est:
         for key in anc_dict:
             counts = [",".join(map(str, x)) for x in anc_dict[key]]
+            while len(counts) < (n_outgroup + 1):
+                counts.append(['0,0,0,0'])
             est.write(f'{" ".join(counts)}\n')
     # create config file
     n_outgroups = len(counts) - 1
@@ -173,7 +175,7 @@ def main():
     #  Main executions
     # =========================================================================
     anc_dict = estsfs_format(file_ingroup, file_outgroup)
-    estsfs_infiles(anc_dict)
+    estsfs_infiles(anc_dict, len(file_outgroup))
 
 
 if __name__ == "__main__":
