@@ -83,7 +83,6 @@ def estsfs_format(fileIngroup, fileOutgroup):
     anc_dict = defaultdict(list)
     ingroup = fileIngroup
     outgroups = fileOutgroup
-    anc_dict = {}
     # get ingroup counts
     with gzip.open(ingroup, 'r') as counts:
         line = next(counts)  # skip header
