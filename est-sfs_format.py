@@ -142,7 +142,7 @@ def estsfs_infiles(anc_dict, n_outgroup):
         for key in anc_dict:
             counts = [",".join(map(str, x)) for x in anc_dict[key]]
             while len(counts) < (n_outgroup + 1):
-                counts.append(['0,0,0,0'])
+                counts.append('0,0,0,0')
             est.write(f'{" ".join(counts)}\n')
     # create config file
     n_outgroups = len(counts) - 1
