@@ -25,8 +25,7 @@ import argparse
 from collections import defaultdict
 
 
-
-def count_allele(counts_line):
+def count_allele(counts_line, ingroup):
     """Count alleles.
 
     Parameters
@@ -50,14 +49,20 @@ def count_allele(counts_line):
     ref, ref_count = counts_line[4].split(":")
     if len(ref) == 1 and int(ref_count) > 0:
         bp_ix = bp_order.index(ref)
-        anc_list[bp_ix] = 1
+        if ingroup:
+            anc_list[bp_ix] += ref_count
+        else:
+            anc_list[bp_ix] = 1
     else:
         try:
             alt, alt_count = counts_line[5].split(":")
             if len(alt) == 1 and int(alt_count) > 0:
                 try:
                     bp_ix = bp_order.index(alt)
-                    anc_list[bp_ix] = 1
+                    if ingroup:
+                        anc_list[bp_ix] += alt_count
+                    else:
+                        anc_list[bp_ix] = 1
                 except ValueError:
                     pass
         except IndexError:
@@ -66,7 +71,7 @@ def count_allele(counts_line):
     return anc_list
 
 
-def estsfs_format(fileIngroup, fileOutgroup):
+def estsfs_format(file_ingroup, file_outgroup):
     """Read in allele counts for est-sfs input.
 
     Parameters
@@ -85,8 +90,8 @@ def estsfs_format(fileIngroup, fileOutgroup):
 
     """
     anc_dict = defaultdict(list)
-    ingroup = fileIngroup
-    outgroups = fileOutgroup
+    ingroup = file_ingroup
+    outgroups = file_outgroup
     # get ingroup counts
     with gzip.open(ingroup, 'r') as counts:
         line = next(counts)  # skip header
@@ -134,7 +139,7 @@ def estsfs_infiles(anc_dict):
     chrom = first.split("_")[0]
     with open(f"{chrom}.est.infile", 'w') as est:
         for key in anc_dict:
-            counts = [",".join(x) for x in anc_dict[key]]
+            counts = [",".join(map(str, x)) for x in anc_dict[key]]
             est.write(f'{" ".join(counts)}\n')
     # create config file
     n_outgroups = len(counts) - 1
@@ -160,13 +165,13 @@ def main():
     # =========================================================================
     args = parse_args(sys.argv[1:])
 
-    fileIngroup = args.ingroup
-    fileOutgroup = args.outgroup
+    file_ingroup = args.ingroup
+    file_outgroup = args.outgroup
 
     # =========================================================================
     #  Main executions
     # =========================================================================
-    anc_dict = estsfs_format(fileIngroup, fileOutgroup)
+    anc_dict = estsfs_format(file_ingroup, file_outgroup)
     estsfs_infiles(anc_dict)
 
 
