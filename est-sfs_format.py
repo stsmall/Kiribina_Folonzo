@@ -23,6 +23,7 @@ import sys
 import gzip
 import argparse
 from collections import defaultdict
+import tqdm as tqdm
 
 
 def count_allele(counts_line):
@@ -54,8 +55,11 @@ def count_allele(counts_line):
         try:
             alt, alt_count = counts_line[5].split(":")
             if len(alt) == 1 and int(alt_count) > 0:
-                bp_ix = bp_order.index(alt)
-                anc_list[bp_ix] = 1
+                try:
+                    bp_ix = bp_order.index(alt)
+                    anc_list[bp_ix] = 1
+                except ValueError:
+                    pass
         except IndexError:
             pass
 
