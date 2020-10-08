@@ -203,7 +203,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             try:
                 avg_bp.append(0.01/c_rate)
             except ZeroDivisionError:
-                breakpoint()
+                continue
             #
             cM = (bps * c_rate) / .01
             snp_list.append(start)
