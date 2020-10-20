@@ -134,8 +134,7 @@ def main():
     outfile = args.outfile
     threads = args.threads
     label_by = args.pops_header
-    metadata = pd.readdata(args.meta)
-    meta = pd.read_csv(metadata, sep="\t", col_index="individualID")
+    meta = pd.read_csv(args.meta, sep="\t", index_col="individualID")
     # =========================================================================
     #  Main executions
     # =========================================================================
