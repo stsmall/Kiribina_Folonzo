@@ -97,6 +97,9 @@ def addAA2vcf(vcfFile, est_dict):
         for line in vcf:
             line = line.decode()
             if line.startswith("#"):
+                if line.startswith("##FORMAT"):
+                    pvcf.write('##INFO=<ID=AA,Number=1,Type=String,Description="Anc Allele">')
+                    pvcf.write('##INFO=<ID=AAProb,Number=A,Type=Float,Description="Prob Maj is Anc">')
                 pvcf.write(line)
             else:
                 line = line.split()
