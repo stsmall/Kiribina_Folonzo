@@ -140,6 +140,7 @@ def main():
     # =========================================================================
 
     vcf = cyvcf2.VCF(vcf_path)
+    breakpoint()
     with tsinfer.SampleData(path=f"{outfile}.samples",
                             sequence_length=chrom_len(vcf),
                             num_flush_threads=threads) as samples:
