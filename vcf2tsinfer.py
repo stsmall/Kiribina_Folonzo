@@ -143,7 +143,7 @@ def main():
     with tsinfer.SampleData(path=f"{outfile}.samples",
                             sequence_length=chrom_len(vcf),
                             num_flush_threads=threads,
-                            max_file_size=2**38) as samples:
+                            max_file_size=2**36) as samples:
 
         add_metadata(vcf, samples, meta, label_by)
         add_diploid_sites(vcf, samples)
