@@ -119,7 +119,7 @@ def parse_args(args_in):
                         help="metadata for names and populations. Columns must "
                         "include individualID and be tab delimited")
     parser.add_argument('-t', "--threads", type=int, default=1)
-    parser.add_argument("--pops_header", type=str)
+    parser.add_argument("--pops_header", type=str, default="Karyotype")
 
     return(parser.parse_args(args_in))
 
