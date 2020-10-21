@@ -99,6 +99,7 @@ def add_diploid_sites(vcf, samples):
         genotypes = [allele_index[old_index] for row in variant.genotypes for old_index in row[0:2]]
 
         samples.add_site(pos, genotypes=genotypes, alleles=alleles)
+    progressbar.close()
 
 
 def chrom_len(vcf):
@@ -141,7 +142,7 @@ def main():
     with tsinfer.SampleData(path=f"{outfile}.samples",
                             sequence_length=chrom_len(vcf),
                             num_flush_threads=threads,
-                            max_file_size=2**36) as samples:
+                            max_file_size=2**37) as samples:
 
         add_metadata(vcf, samples, meta, label_by)
         add_diploid_sites(vcf, samples)
