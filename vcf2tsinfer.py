@@ -31,7 +31,7 @@ import sys
 import argparse
 
 
-def add_metadata(vcf, samples, meta, label_by="Karyotype"):
+def add_metadata(vcf, samples, meta, label_by):
     """Add tsinfer meta data.
 
     Parameters
@@ -50,7 +50,6 @@ def add_metadata(vcf, samples, meta, label_by="Karyotype"):
     None.
 
     """
-    breakpoint()
     pop_lookup = {}
     for pop in meta[label_by].unique():
         pop_lookup[pop] = samples.add_population(metadata={label_by: pop})
@@ -95,7 +94,6 @@ def add_diploid_sites(vcf, samples):
 
         alleles = [variant.REF] + variant.ALT
         ancestral = variant.INFO.get('AA', variant.REF)
-        breakpoint()
         ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
         allele_index = {old_index: ordered_alleles.index(allele) for old_index, allele in enumerate(alleles)}
         genotypes = [allele_index[old_index] for row in variant.genotypes for old_index in row[0:2]]
@@ -134,7 +132,7 @@ def main():
     outfile = args.outfile
     threads = args.threads
     label_by = args.pops_header
-    meta = pd.read_csv(args.meta, sep="\t", index_col="individualID")
+    meta = pd.read_csv(args.meta, sep="\t", index_col="individualID", dtype=object)
     # =========================================================================
     #  Main executions
     # =========================================================================
