@@ -82,7 +82,6 @@ def add_diploid_sites(vcf, samples):
     None.
 
     """
-    breakpoint()
     progressbar = tqdm.tqdm(total=samples.sequence_length, desc="Read VCF", unit='bp')
     pos = 0
     for variant in vcf:
@@ -141,7 +140,6 @@ def main():
     # =========================================================================
 
     vcf = cyvcf2.VCF(vcf_path)
-    breakpoint()
     with tsinfer.SampleData(path=f"{outfile}.samples",
                             sequence_length=chrom_len(vcf),
                             num_flush_threads=threads,
