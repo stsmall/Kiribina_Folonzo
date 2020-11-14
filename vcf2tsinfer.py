@@ -133,7 +133,7 @@ def main():
     outfile = args.outfile
     threads = args.threads
     label_by = args.pops_header
-    meta = pd.read_csv(args.meta, sep="\t", index_col="individualID", dtype=object)
+    meta = pd.read_csv(args.meta, sep="\t", index_col="sampleID", dtype=object)
     # =========================================================================
     #  Main executions
     # =========================================================================
