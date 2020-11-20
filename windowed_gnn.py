@@ -273,6 +273,7 @@ def gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups, foc,
         gnn_m = np.median(gnn, axis=1)
     else:
         gnn_m = np.mean(gnn, axis=1)
+
     if savedf:  # save to df
         left = list(ts.breakpoints())[:-1]
         right = list(ts.breakpoints())[1:]
@@ -316,12 +317,13 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
 
     group = foc
     A = gnn_m
+    A_norm = np.sum(A, axis=1)
     # plotting
     fig, ax = plt.subplots(1, figsize=(14, 4))
     for j, pop in enumerate(groups):
-        ax.bar(left, A[:, j], bottom=total, width=width, align="edge",
+        ax.bar(left, A[:, j]/A_norm, bottom=total, width=width, align="edge",
                label=pop, color=colours[pop])
-        total += A[:, j]
+        total += A[:, j]/A_norm
     ax.set_title(f"Chromosome painting ({group})")
     ax.set_xticks([])
     ax.set_yticks([])
