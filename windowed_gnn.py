@@ -117,6 +117,7 @@ def gnn_fx(outfile, ts, ref_samples, focal, groups, savedf=True):
     None.
 
     """
+    breakpoint()
     if not focal:
         focal = ts.samples()  # all samples
 
