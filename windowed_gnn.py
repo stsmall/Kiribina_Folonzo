@@ -39,7 +39,7 @@ COLOURS = ["#FDBF6F", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99",
 FOCAL_IND = "02-06207"  # sets a grey box highlight of hap in GNN plot
 
 
-def gnn_fx(outfile, ts, ref_samples, focal, groups, savedf=True):
+def gnn_fx(outfile, ts, ref_samples, target_samples, groups, savedf=True):
     """Run mean GNN fx.
 
     Parameters
@@ -63,12 +63,12 @@ def gnn_fx(outfile, ts, ref_samples, focal, groups, savedf=True):
 
     """
     # calc gnn
-    gnn = ts.genealogical_nearest_neighbours(focal, ref_samples)
+    gnn = ts.genealogical_nearest_neighbours(target_samples, ref_samples)
 
     # save results
     if savedf:
         #sample_nodes = [ts.node(n) for n in ts.samples()]
-        sample_nodes = [ts.node(n) for n in focal]
+        sample_nodes = [ts.node(n) for n in target_samples]
         sample_ids = [n.id for n in sample_nodes]
         sample_names = [json.loads(ts.individual(n.individual).metadata)['Isolate'] for n in sample_nodes]
         sample_pops = [json.loads(ts.population(n.population).metadata)['Group'] for n in sample_nodes]
@@ -240,7 +240,7 @@ def windowed_gnn(ts,
     return A
 
 
-def gnn_windows_fx(outfile, ts, ref_samples, foc_set, groups, savedf=True):
+def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc, median=True, savedf=True):
     """Calculate gnn in windows.
 
     Parameters
@@ -262,23 +262,24 @@ def gnn_windows_fx(outfile, ts, ref_samples, foc_set, groups, savedf=True):
     """
     windows = list(ts.breakpoints())  # all trees
     gnn_dict = {}
-    for i, foc in enumerate(foc_set):
-        gnn = windowed_gnn(ts, ts.samples(population=foc), ref_samples, windows=windows)
-        gnn_mean = np.mean(gnn, axis=1)
-        gnn_dict[groups[i]] = gnn_mean
+    gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows)
+    if median:
+        gnn_m = np.median(gnn, axis=1)
+    else:
+        gnn_m = np.mean(gnn, axis=1)
 
-        if savedf:  # save to df
-            left = list(ts.breakpoints())[:-1]
-            right = list(ts.breakpoints())[1:]
-            group = [groups[i]] * len(left)
-            gnn_table = pd.DataFrame(
-                data=gnn_mean,
-                index=[pd.Index(left, name="left_bp"),
-                       pd.Index(right, name="right_bp"),
-                       pd.Index(group, name="Group")],
-                columns=groups
-                )
-            gnn_table.to_csv(f"GNN_windows.{outfile}.{groups[i]}.csv")
+    if savedf:  # save to df
+        left = list(ts.breakpoints())[:-1]
+        right = list(ts.breakpoints())[1:]
+        group = [groups[foc]] * len(left)
+        gnn_table = pd.DataFrame(
+            data=gnn_m,
+            index=[pd.Index(left, name="left_bp"),
+                   pd.Index(right, name="right_bp"),
+                   pd.Index(group, name="Group")],
+            columns=groups
+            )
+        gnn_table.to_csv(f"GNN_windows.{outfile}.{groups[foc]}.csv")
 
     return gnn_dict
 
@@ -321,6 +322,15 @@ def plot_gnn_windows(outfile, ts, gnn_dict, groups):
         ax.set_yticks([])
         ax.set_xlim(0, np.max(right))
         ax.set_ylim(0, 1)
+        ax.legend(bbox_to_anchor=(1.02, 0.76))
+
+        # # mark outlier windows
+        # if focal_ind:
+        #     for x in [x1, x2]:
+        #         p = mpl.patches.Rectangle(
+        #             (x, 0), width=1, height=1, fill=False, linestyle="--", color="grey")
+        #         ax.add_patch(p)
+
         fig.savefig(f"GNN_windows.{outfile}.{group}.pdf", bbox_inches='tight')
 
 
@@ -430,8 +440,8 @@ def main():
         gnn_fx(outfile, ts, ref_samples, target_samples, groups)
         plot_gnn_wg(f"GNN.{outfile}.csv", groups, FOCAL_IND)
     else:
-        gnndict = gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups)
-        plot_gnn_windows(outfile, ts, gnndict, groups)
+        gnn = gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc_set)
+        plot_gnn_windows(outfile, ts, gnn, groups)
 
 
 if __name__ == "__main__":
