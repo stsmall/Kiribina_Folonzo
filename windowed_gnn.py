@@ -171,6 +171,7 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
+    breakpoint()
     ts = tskit.load(tree)
     if not ref_set:
         ref_set = range(ts.num_populations)  # all populations
