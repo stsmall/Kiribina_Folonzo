@@ -302,6 +302,7 @@ def plot_gnn_windows(outfile, ts, gnn_dict, groups):
     None.
 
     """
+    breakpoint()
     left = list(ts.breakpoints())[:-1]
     right = list(ts.breakpoints())[1:]
     width = np.subtract(right, left)
@@ -419,7 +420,6 @@ def main():
 
     ref_samples = [ts.samples(population=i) for i in ref_set]
     groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
-    breakpoint()
     if foc_set:
         foc_set = list(map(int, foc_set[0]))
         target_samples = []
