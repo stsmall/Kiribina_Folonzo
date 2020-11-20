@@ -4,22 +4,25 @@
 Created on Tue Oct 13 17:53:34 2020
 @author: Scott T. Small
 
+Code to build tsinfer samples file from VCF.
 This code follows the example at:
     https://tsinfer.readthedocs.io/en/latest/tutorial.html
-for loading data from a VCF into tsinfer
 
 Example
 -------
 
-    $ python example_numpy.py
+    $ python vcf2tsinfer.py --vcf chr2L.recode.vcf --outfile chr2L \
+        --meta ../../../KirFol.meta.srt.groups.txt -t 2 --pops_header Group
+
+    $ tsinfer infer chr2L.samples -o -t 30
 
 Notes
 -----
-    This is an example of an indented section. It's like any other section,
-    but the body is indented to help it stand out from surrounding text.
-
-If a section is indented, then a section break is created by
-resuming unindented text.
+For the redhat system, this version reserves too large of a file size and causes
+a memory error. The latest release contains the max file size option,
+max_file_size=2**37 that seems to fix this.
+https://tsinfer.readthedocs.io/en/latest/api.html#file-formats
+python -m pip install git+https://github.com/tskit-dev/tsinfer
 
 """
 
@@ -29,6 +32,8 @@ import tqdm
 import pandas as pd
 import sys
 import argparse
+
+# TODO: allow parallel loading of large VCFs https://github.com/tskit-dev/tsinfer/issues/277#issuecomment-652024871
 
 
 def add_metadata(vcf, samples, meta, label_by):

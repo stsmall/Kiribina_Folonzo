@@ -79,6 +79,8 @@ import argparse
 import sys
 import numpy as np
 
+
+print("using hard coded An. funestus parameters... consider changing globals ln 84 & 86")
 CHROM_DICT = {"X": 17661987, "3L": 42939845, "3R": 50894052, "3": 93833897,
               "2R": 55000152, "2L": 44479186, "2": 99479338}
 MAP_DICT = {"X": 44.7, "3L": 89.1, "3R": 90.9, "3": 180,
