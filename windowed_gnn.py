@@ -39,7 +39,7 @@ COLOURS = ["#FDBF6F", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99",
 FOCAL_IND = "02-06207"  # sets a grey box highlight of hap in GNN plot
 
 
-def gnn_fx(outfile, ts, ref_samples, target_samples, groups, savedf=True):
+def gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups, savedf=True):
     """Run mean GNN fx.
 
     Parameters
@@ -77,7 +77,7 @@ def gnn_fx(outfile, ts, ref_samples, target_samples, groups, savedf=True):
             index=[pd.Index(sample_ids, name="Sample_node"),
                    pd.Index(sample_names, name="Isolate"),
                    pd.Index(sample_pops, name="Group")],
-            columns=groups
+            columns=ref_groups
             )
 
         gnn_table.to_csv(f"GNN.{outfile}.csv")
@@ -240,7 +240,7 @@ def windowed_gnn(ts,
     return A
 
 
-def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc,
+def gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups, foc,
                    gnn_win, gnn_time, median=True, savedf=True):
     """Calculate gnn in windows.
 
@@ -273,24 +273,23 @@ def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc,
         gnn_m = np.median(gnn, axis=1)
     else:
         gnn_m = np.mean(gnn, axis=1)
-    breakpoint()
     if savedf:  # save to df
         left = list(ts.breakpoints())[:-1]
         right = list(ts.breakpoints())[1:]
-        group = [groups[foc]] * len(left)
+        group = [foc] * len(left)
         gnn_table = pd.DataFrame(
             data=gnn_m,
             index=[pd.Index(left, name="left_bp"),
                    pd.Index(right, name="right_bp"),
                    pd.Index(group, name="Group")],
-            columns=groups
+            columns=ref_groups
             )
-        gnn_table.to_csv(f"GNN_windows.{outfile}.{groups[foc]}.csv")
+        gnn_table.to_csv(f"GNN_windows.{outfile}.{foc}.csv")
 
     return gnn_m
 
 
-def plot_gnn_windows(outfile, ts, gnn_dict, groups):
+def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     """Plot output from gnn windows.
 
     Parameters
@@ -315,29 +314,29 @@ def plot_gnn_windows(outfile, ts, gnn_dict, groups):
     total = np.zeros_like(width)
     colours = {g: COLOURS[i] for i, g in enumerate(groups)}
 
-    for group in gnn_dict.keys():
-        A = gnn_dict[group]
-        # plotting
-        fig, ax = plt.subplots(1, figsize=(14, 4))
-        for j, pop in enumerate(groups):
-            ax.bar(left, A[:, j], bottom=total, width=width, align="edge",
-                   label=pop, color=colours[pop])
-            total += A[:, j]
-        ax.set_title(f"Chromosome painting ({group})")
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_xlim(0, np.max(right))
-        ax.set_ylim(0, 1)
-        ax.legend(bbox_to_anchor=(1.02, 0.76))
+    group = foc
+    A = gnn_m
+    # plotting
+    fig, ax = plt.subplots(1, figsize=(14, 4))
+    for j, pop in enumerate(groups):
+        ax.bar(left, A[:, j], bottom=total, width=width, align="edge",
+               label=pop, color=colours[pop])
+        total += A[:, j]
+    ax.set_title(f"Chromosome painting ({group})")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlim(0, np.max(right))
+    ax.set_ylim(0, 1)
+    ax.legend(bbox_to_anchor=(1.02, 0.76))
 
-        # # mark outlier windows
-        # if focal_ind:
-        #     for x in [x1, x2]:
-        #         p = mpl.patches.Rectangle(
-        #             (x, 0), width=1, height=1, fill=False, linestyle="--", color="grey")
-        #         ax.add_patch(p)
+    # # mark outlier windows
+    # if focal_ind:
+    #     for x in [x1, x2]:
+    #         p = mpl.patches.Rectangle(
+    #             (x, 0), width=1, height=1, fill=False, linestyle="--", color="grey")
+    #         ax.add_patch(p)
 
-        fig.savefig(f"GNN_windows.{outfile}.{group}.pdf", bbox_inches='tight')
+    fig.savefig(f"GNN_windows.{outfile}.{group}.pdf", bbox_inches='tight')
 
 
 def plot_gnn_wg(gnndf, groups, focal_ind):
@@ -433,7 +432,8 @@ def main():
         ref_set = range(ts.num_populations)  # all populations
 
     ref_samples = [ts.samples(population=i) for i in ref_set]
-    groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
+    ref_groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
+    all_groups = [json.loads(ts.population(i).metadata)["Group"] for i in range(ts.num_populations)]
     if foc_set:
         foc_set = list(map(int, foc_set[0]))
         target_samples = []
@@ -443,12 +443,13 @@ def main():
         target_samples = ts.samples()
 
     if not gnn_win and not gnn_time:
-        gnn_fx(outfile, ts, ref_samples, target_samples, groups)
-        plot_gnn_wg(f"GNN.{outfile}.csv", groups, FOCAL_IND)
+        gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups)
+        plot_gnn_wg(f"GNN.{outfile}.csv", ref_groups, FOCAL_IND)
     else:
         assert len(foc_set) == 1, "windows option only works for 1 target set"
-        gnn = gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc_set, gnn_win, gnn_time)
-        plot_gnn_windows(outfile, ts, gnn, groups)
+        gnn_m = gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups,
+                               all_groups[foc_set], gnn_win, gnn_time)
+        plot_gnn_windows(outfile, ts, gnn_m, ref_groups, all_groups[foc_set])
 
 
 if __name__ == "__main__":
