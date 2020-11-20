@@ -417,6 +417,7 @@ def main():
         ref_set = range(ts.num_populations)  # all populations
     groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
     ref_samples = [ts.samples(population=i) for i in ref_set]
+    breakpoint()
     target_samples = [ts.samples(population=i) for i in foc_set]
     if not tree_windows and not time_windows:
         gnn_fx(outfile, ts, ref_samples, target_samples, groups)
