@@ -318,6 +318,7 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     group = foc
     A = gnn_m
     A_norm = np.sum(A, axis=1)
+    breakpoint()
     # plotting
     fig, ax = plt.subplots(1, figsize=(14, 4))
     for j, pop in enumerate(groups):
@@ -331,11 +332,18 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     ax.set_ylim(0, 1)
     ax.legend(bbox_to_anchor=(1.02, 0.76))
 
-    # # mark outlier windows
-    # if focal_ind:
-    #     for x in [x1, x2]:
+    # mark outlier windows
+    k_out = A[:, 0] > pfix
+    left[k_out]
+    width[k_out]
+
+    # f_out = A[:, 1] > pfix
+    # left[k_out]
+    # width[k_out]
+    # if mark_outliers:
+    #     for l, w in zip(left, width):
     #         p = mpl.patches.Rectangle(
-    #             (x, 0), width=1, height=1, fill=False, linestyle="--", color="grey")
+    #             (l, 0), width=w, height=1, fill=False, linestyle="--", color="grey")
     #         ax.add_patch(p)
 
     fig.savefig(f"GNN_windows.{outfile}.{group}.pdf", bbox_inches='tight')
