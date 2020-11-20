@@ -62,15 +62,13 @@ def gnn_fx(outfile, ts, ref_samples, focal, groups, savedf=True):
     None.
 
     """
-    if not focal:
-        focal = ts.samples()  # all samples
-
     # calc gnn
     gnn = ts.genealogical_nearest_neighbours(focal, ref_samples)
 
     # save results
     if savedf:
-        sample_nodes = [ts.node(n) for n in ts.samples()]
+        #sample_nodes = [ts.node(n) for n in ts.samples()]
+        sample_nodes = [ts.node(n) for n in focal]
         sample_ids = [n.id for n in sample_nodes]
         sample_names = [json.loads(ts.individual(n.individual).metadata)['Isolate'] for n in sample_nodes]
         sample_pops = [json.loads(ts.population(n.population).metadata)['Group'] for n in sample_nodes]
