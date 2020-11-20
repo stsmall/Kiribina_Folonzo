@@ -422,18 +422,15 @@ def main():
     gnn_win = args.gnn_windows
     gnn_time = args.time_windows
     # =========================================================================
-    #  Main executions
+    #  Loading and Checks
     # =========================================================================
-    ts = tskit.load(tree)
-
+    ts = tskit.load(tree)  # load tree
+    # set refernce for comparison
     if ref_set:
         ref_set = list(map(int, args.ref[0]))
     else:
         ref_set = range(ts.num_populations)  # all populations
-
-    ref_samples = [ts.samples(population=i) for i in ref_set]
-    ref_groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
-    all_groups = [json.loads(ts.population(i).metadata)["Group"] for i in range(ts.num_populations)]
+    # set target population
     if foc_set:
         foc_set = list(map(int, foc_set[0]))
         target_samples = []
@@ -441,6 +438,13 @@ def main():
             target_samples.extend(ts.samples(population=i))
     else:
         target_samples = ts.samples()
+    # =========================================================================
+    #  Main executions
+    # =========================================================================
+    ref_samples = [ts.samples(population=i) for i in ref_set]
+    ref_groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
+    all_groups = [json.loads(ts.population(i).metadata)["Group"] for i in range(ts.num_populations)]
+    target_group = all_groups[foc_set[0]]
 
     if not gnn_win and not gnn_time:
         gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups)
@@ -448,8 +452,8 @@ def main():
     else:
         assert len(foc_set) == 1, "windows option only works for 1 target set"
         gnn_m = gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups,
-                               all_groups[foc_set], gnn_win, gnn_time)
-        plot_gnn_windows(outfile, ts, gnn_m, ref_groups, all_groups[foc_set])
+                               target_group, gnn_win, gnn_time)
+        plot_gnn_windows(outfile, ts, gnn_m, ref_groups, target_group)
 
 
 if __name__ == "__main__":
