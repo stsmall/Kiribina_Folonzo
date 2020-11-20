@@ -165,7 +165,7 @@ def main():
     # =========================================================================
     tree = args.tree
     outfile = path.split(tree)[-1]
-    ref_set = map(int, args.ref[0])
+    ref_set = list(map(int, args.ref[0]))
     foc_set = args.foc
     tree_windows = args.gnn_windows
     time_windows = args.time_windows
@@ -176,7 +176,7 @@ def main():
     if not ref_set:
         ref_set = range(ts.num_populations)  # all populations
     groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
-    ref_samples = [ts.samples(population=pop_id) for pop_id in ref_set]
+    ref_samples = [ts.samples(population=i) for i in ref_set]
     breakpoint()
     if not tree_windows and not time_windows:
         gnn_fx(outfile, ts, ref_samples, foc_set, groups)
