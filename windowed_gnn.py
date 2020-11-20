@@ -406,7 +406,7 @@ def main():
     tree = args.tree
     outfile = path.split(tree)[-1]
     ref_set = list(map(int, args.ref[0]))
-    foc_set = args.foc
+    foc_set = list(map(int, args.foc[0]))
     tree_windows = args.gnn_windows
     time_windows = args.time_windows
     # =========================================================================
@@ -417,11 +417,12 @@ def main():
         ref_set = range(ts.num_populations)  # all populations
     groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
     ref_samples = [ts.samples(population=i) for i in ref_set]
+    target_samples = [ts.samples(population=i) for i in foc_set]
     if not tree_windows and not time_windows:
-        gnn_fx(outfile, ts, ref_samples, foc_set, groups)
+        gnn_fx(outfile, ts, ref_samples, target_samples, groups)
         plot_gnn_wg(f"GNN.{outfile}.csv", groups, FOCAL_IND)
     else:
-        gnndict = gnn_windows_fx(outfile, ts, ref_samples, foc_set, groups)
+        gnndict = gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups)
         plot_gnn_windows(outfile, ts, gnndict, groups)
 
 
