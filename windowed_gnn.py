@@ -145,9 +145,9 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("tree", type=str, help="tskit tree object")
-    parser.add_argument("--ref", type=str, args="*", action="append",
+    parser.add_argument("--ref", type=str, nargs="*", action="append",
                         help="reference sets to compare to focal node")
-    parser.add_argument("--foc", type=str, args="*", action="append",
+    parser.add_argument("--foc", type=str, nargs="*", action="append",
                         help="focal nodes")
     parser.add_argument("--gnn_windows", action="store_true",
                         help="run gnn in windows mode")
