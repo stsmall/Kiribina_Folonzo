@@ -240,7 +240,8 @@ def windowed_gnn(ts,
     return A
 
 
-def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc, median=True, savedf=True):
+def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc,
+                   gnn_win, gnn_time, median=True, savedf=True):
     """Calculate gnn in windows.
 
     Parameters
@@ -261,13 +262,18 @@ def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc, median
 
     """
     windows = list(ts.breakpoints())  # all trees
-    gnn_dict = {}
-    gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows)
+    if gnn_win and gnn_time:
+        gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows, time_windows=[0, 50])
+    elif gnn_win and not gnn_time:
+        gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows)
+    elif gnn_time and not gnn_win:
+        gnn = windowed_gnn(ts, target_samples, ref_samples, time_windows=[0, 50])
+
     if median:
         gnn_m = np.median(gnn, axis=1)
     else:
         gnn_m = np.mean(gnn, axis=1)
-
+    breakpoint()
     if savedf:  # save to df
         left = list(ts.breakpoints())[:-1]
         right = list(ts.breakpoints())[1:]
@@ -281,7 +287,7 @@ def gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc, median
             )
         gnn_table.to_csv(f"GNN_windows.{outfile}.{groups[foc]}.csv")
 
-    return gnn_dict
+    return gnn_m
 
 
 def plot_gnn_windows(outfile, ts, gnn_dict, groups):
@@ -414,8 +420,8 @@ def main():
     outfile = path.split(tree)[-1]
     ref_set = args.ref
     foc_set = args.foc
-    tree_windows = args.gnn_windows
-    time_windows = args.time_windows
+    gnn_win = args.gnn_windows
+    gnn_time = args.time_windows
     # =========================================================================
     #  Main executions
     # =========================================================================
@@ -436,11 +442,12 @@ def main():
     else:
         target_samples = ts.samples()
 
-    if not tree_windows and not time_windows:
+    if not gnn_win and not gnn_time:
         gnn_fx(outfile, ts, ref_samples, target_samples, groups)
         plot_gnn_wg(f"GNN.{outfile}.csv", groups, FOCAL_IND)
     else:
-        gnn = gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc_set)
+        assert len(foc_set) == 1, "windows option only works for 1 target set"
+        gnn = gnn_windows_fx(outfile, ts, ref_samples, target_samples, groups, foc_set, gnn_win, gnn_time)
         plot_gnn_windows(outfile, ts, gnn, groups)
 
 
