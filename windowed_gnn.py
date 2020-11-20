@@ -302,7 +302,6 @@ def plot_gnn_windows(outfile, ts, gnn_dict, groups):
     None.
 
     """
-    breakpoint()
     left = list(ts.breakpoints())[:-1]
     right = list(ts.breakpoints())[1:]
     width = np.subtract(right, left)
@@ -344,9 +343,8 @@ def plot_gnn_wg(gnndf, groups, focal_ind):
     """
     # load df
     df = pd.read_csv(gnndf)
-
     # prepare data
-    A = np.zeros((2, len(df)))
+    A = np.zeros((len(groups), len(df)))
     for j, pop in enumerate(groups):
         A[j, :] = df[pop].values
     index = np.argsort(A[0])[::-1]
