@@ -57,7 +57,7 @@ def plot_gnn_wg(gnndf, groups, focal_ind):
 
     """
     # load df
-    df = pd.read_csv("gnndf")
+    df = pd.read_csv(gnndf)
 
     # prepare data
     A = np.zeros((2, len(df)))
@@ -117,7 +117,6 @@ def gnn_fx(outfile, ts, ref_samples, focal, groups, savedf=True):
     None.
 
     """
-    breakpoint()
     if not focal:
         focal = ts.samples()  # all samples
 
@@ -177,7 +176,6 @@ def main():
         ref_set = range(ts.num_populations)  # all populations
     groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
     ref_samples = [ts.samples(population=i) for i in ref_set]
-    breakpoint()
     if not tree_windows and not time_windows:
         gnn_fx(outfile, ts, ref_samples, foc_set, groups)
         plot_gnn_wg(f"GNN.{outfile}.csv", groups, FOCAL_IND)
