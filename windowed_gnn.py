@@ -72,7 +72,7 @@ def plot_gnn_wg(gnndf, groups, focal_ind):
 
     # plotting
     colours = {g: COLOURS[i] for i, g in enumerate(groups)}
-    fig, ax = plt.figure(figsize=(14, 4))
+    fig, ax = plt.subplots(1, figsize=(14, 4))
     x = np.arange(len(df))
     for j, region in enumerate(groups):
         ax.bar(x, A[j], bottom=np.sum(A[:j, :], axis=0), label=region, width=1,
