@@ -164,14 +164,13 @@ def main():
     # =========================================================================
     tree = args.tree
     outfile = path.split(tree)[-1]
-    ref_set = args.ref
+    ref_set = map(int, args.ref[0])
     foc_set = args.foc
     tree_windows = args.gnn_windows
     time_windows = args.time_windows
     # =========================================================================
     #  Main executions
     # =========================================================================
-    breakpoint()
     ts = tskit.load(tree)
     if not ref_set:
         ref_set = range(ts.num_populations)  # all populations
