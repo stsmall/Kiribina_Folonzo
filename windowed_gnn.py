@@ -345,8 +345,6 @@ def plot_gnn_windows_p1(outfile, ts, gnn_m, groups, foc, pfix=0.95, mark_outlier
     fig.savefig(f"GNN_windows.{outfile}.{foc}.p1.pdf", bbox_inches='tight')
 
 
-
-
 def plot_gnn_windows_p2(outfile, ts, gnn_m, groups, foc, pfix=0.95, mark_outliers=True):
     """Plot output from gnn windows.
 
@@ -520,8 +518,8 @@ def main():
         target_group = all_groups[foc_set[0]]
         gnn_m = gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups,
                                target_group, gnn_win, gnn_time)
-        #plot_gnn_windows_p1(outfile, ts, gnn_m, ref_groups, target_group)
-        plot_gnn_windows_p2(outfile, ts, gnn_m, ref_groups, target_group)
+        plot_gnn_windows_p1(outfile, ts, gnn_m, ref_groups, target_group)
+        #plot_gnn_windows_p2(outfile, ts, gnn_m, ref_groups, target_group)
 
 
 if __name__ == "__main__":
