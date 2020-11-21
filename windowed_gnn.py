@@ -324,7 +324,7 @@ def plot_gnn_windows_p1(outfile, ts, gnn_m, groups, foc, pfix=0.95, mark_outlier
                label=pop, color=colours[pop])
         total += A[:, j]
     ax.set_title(f"Chromosome painting ({foc})")
-    #ax.set_xticks([np.linspace(right[0], right[-1], 10)])
+    ax.set_xticks(np.linspace(right[0], right[-1], 10))
     ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.set_xlim(0, np.max(right))
     ax.set_ylim(0, 1)
@@ -382,7 +382,7 @@ def plot_gnn_windows_p2(outfile, ts, gnn_m, groups, foc, pfix=0.95, mark_outlier
         group = groups[i]
         ax.bar(left, A[:, i], bottom=total, width=width, align="edge", label=group, color=colours[group])
         ax.set_title(f"Chromosome painting ({group})")
-        #ax.set_xticks([np.linspace(right[0], right[-1], 10)])
+        ax.set_xticks(np.linspace(right[0], right[-1], 10))
         ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         ax.set_xlim(0, np.max(right))
         ax.set_ylim(0, 1)
