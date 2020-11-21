@@ -322,7 +322,7 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     fig, ax = plt.subplots(1, figsize=(14, 4))
     for j, pop in enumerate(groups):
         ax.bar(left, A[:, j]/A_norm, bottom=total, width=width, align="edge",
-               label=pop, color=colours[pop], alpha=0.2)
+               label=pop, color=colours[pop])
         total += A[:, j]/A_norm
     ax.set_title(f"Chromosome painting ({foc})")
     ax.set_xticks([np.linspace(right[0], right[-1], 100)])
