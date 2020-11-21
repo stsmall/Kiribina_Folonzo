@@ -384,7 +384,7 @@ def plot_gnn_wg(gnndf, groups, focal_ind):
     x = np.arange(len(df))
     for j, region in enumerate(groups):
         ax.bar(x, A[j], bottom=np.sum(A[:j, :], axis=0), label=region, width=1,
-               color=colours[region], align="edge")
+               color=colours[region], align="edge", alpha=0.2)
     ax.set_xlim(0, len(df) - 1)
     ax.set_ylim(0, 1)
     ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
@@ -454,13 +454,13 @@ def main():
     ref_samples = [ts.samples(population=i) for i in ref_set]
     ref_groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
     all_groups = [json.loads(ts.population(i).metadata)["Group"] for i in range(ts.num_populations)]
-    target_group = all_groups[foc_set[0]]
 
     if not gnn_win and not gnn_time:
         gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups)
         plot_gnn_wg(f"GNN.{outfile}.csv", ref_groups, FOCAL_IND)
     else:
         assert len(foc_set) == 1, "windows option only works for 1 target set"
+        target_group = all_groups[foc_set[0]]
         gnn_m = gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups,
                                target_group, gnn_win, gnn_time)
         plot_gnn_windows(outfile, ts, gnn_m, ref_groups, target_group)
