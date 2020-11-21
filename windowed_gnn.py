@@ -333,8 +333,10 @@ def plot_gnn_windows_p1(outfile, ts, gnn_m, groups, foc, pfix=0.95, mark_outlier
     ax.set_xlabel("Position")
     # mark outlier windows
     k_out = A[:, 0] > pfix
-    k_left = left[k_out]
-    k_width = width[k_out]
+    left_arr = np.array(left)
+    width_arr = np.array(width)
+    k_left = left_arr[k_out]
+    k_width = width_arr[k_out]
     if mark_outliers:
         for l, w in zip(k_left, k_width):
             p = mpl.patches.Rectangle(
@@ -390,10 +392,11 @@ def plot_gnn_windows_p2(outfile, ts, gnn_m, groups, foc, pfix=0.95, mark_outlier
         ax.set_ylabel("GNN Fraction")
         ax.set_xlabel("Position")
         # mark outlier windows
-        breakpoint()
         k_out = A[:, i] > pfix
-        k_left = left[k_out]
-        k_width = width[k_out]
+        left_arr = np.array(left)
+        width_arr = np.array(width)
+        k_left = left_arr[k_out]
+        k_width = width_arr[k_out]
         if mark_outliers:
             for l, w in zip(k_left, k_width):
                 p = mpl.patches.Rectangle(
