@@ -317,19 +317,41 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     group = foc
     A = gnn_m
     A_norm = np.sum(A, axis=1)
-    # plotting
+
+    # plotting 1
     fig, ax = plt.subplots(1, figsize=(14, 4))
     for j, pop in enumerate(groups):
         ax.bar(left, A[:, j]/A_norm, bottom=total, width=width, align="edge",
                label=pop, color=colours[pop], alpha=0.2)
         total += A[:, j]/A_norm
-    ax.set_title(f"Chromosome painting ({group})")
+    ax.set_title(f"Chromosome painting ({foc})")
     ax.set_xticks([np.linspace(right[0], right[-1], 100)])
     ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.set_xlim(0, np.max(right))
     ax.set_ylim(0, 1)
     ax.legend(bbox_to_anchor=(1.02, 0.76))
     ax.set_ylabel("GNN Fraction")
+    ax.set_xlabel("Position")
+    breakpoint()
+    fig.savefig(f"GNN_windows.{outfile}.{foc}.p1.pdf", bbox_inches='tight')
+
+    # plotting 2
+    gs = mpl.gridspec.GridSpec(2, 1, hspace=0.6)
+    fig = plt.figure(figsize=(14, 4))
+    ax_left = plt.subplot(gs[0])
+    ax_right = plt.subplot(gs[1])
+    for i, ax in enumerate([ax_left, ax_right]):
+        group = groups[i]
+        ax.bar(left, A[:, i], bottom=total, width=width, align="edge", label=group, color=colours[group])
+        ax.set_title(f"Chromosome painting ({group})")
+        ax.set_xticks([np.linspace(right[0], right[-1], 100)])
+        ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        ax.set_xlim(0, np.max(right))
+        ax.set_ylim(0, 1)
+        ax.legend(bbox_to_anchor=(1.02, 0.76))
+        ax.set_ylabel("GNN Fraction")
+        ax.set_xlabel("Position")
+    fig.savefig(f"GNN_windows.{outfile}.{foc}.p2.pdf", bbox_inches='tight')
 
     # mark outlier windows
     # k_out = A[:, 0] > pfix
@@ -345,7 +367,7 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     #             (l, 0), width=w, height=1, fill=False, linestyle="--", color="grey")
     #         ax.add_patch(p)
 
-    fig.savefig(f"GNN_windows.{outfile}.{group}.pdf", bbox_inches='tight')
+#    fig.savefig(f"GNN_windows.{outfile}.{group}.pdf", bbox_inches='tight')
 
 
 def plot_gnn_wg(gnndf, groups, focal_ind):
