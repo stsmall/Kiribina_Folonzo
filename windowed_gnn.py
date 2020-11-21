@@ -384,7 +384,7 @@ def plot_gnn_wg(gnndf, groups, focal_ind):
     x = np.arange(len(df))
     for j, region in enumerate(groups):
         ax.bar(x, A[j], bottom=np.sum(A[:j, :], axis=0), label=region, width=1,
-               color=colours[region], align="edge", alpha=0.2)
+               color=colours[region], align="edge")
     ax.set_xlim(0, len(df) - 1)
     ax.set_ylim(0, 1)
     ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
