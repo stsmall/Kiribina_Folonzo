@@ -268,7 +268,6 @@ def gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups, foc,
         gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows)
     elif gnn_time and not gnn_win:
         gnn = windowed_gnn(ts, target_samples, ref_samples, time_windows=[0, 50])
-    breakpoint()
     if median:
         gnn_m = np.median(gnn, axis=1)
     else:
@@ -318,7 +317,6 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
     group = foc
     A = gnn_m
     A_norm = np.sum(A, axis=1)
-    breakpoint()
     # plotting
     fig, ax = plt.subplots(1, figsize=(14, 4))
     for j, pop in enumerate(groups):
@@ -326,16 +324,17 @@ def plot_gnn_windows(outfile, ts, gnn_m, groups, foc, pfix=0.90):
                label=pop, color=colours[pop], alpha=0.2)
         total += A[:, j]/A_norm
     ax.set_title(f"Chromosome painting ({group})")
-    ax.set_xticks([])
-    ax.set_yticks([])
+    ax.set_xticks([np.linspace(right[0], right[-1], 100)])
+    ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.set_xlim(0, np.max(right))
     ax.set_ylim(0, 1)
     ax.legend(bbox_to_anchor=(1.02, 0.76))
+    ax.set_ylabel("GNN Fraction")
 
     # mark outlier windows
-    k_out = A[:, 0] > pfix
-    left[k_out]
-    width[k_out]
+    # k_out = A[:, 0] > pfix
+    # left[k_out]
+    # width[k_out]
 
     # f_out = A[:, 1] > pfix
     # left[k_out]
@@ -388,6 +387,7 @@ def plot_gnn_wg(gnndf, groups, focal_ind):
                color=colours[region], align="edge")
     ax.set_xlim(0, len(df) - 1)
     ax.set_ylim(0, 1)
+    ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.set_xticks([])
     ax.set_ylabel("GNN Fraction")
     ax.set_title("Haplotypes sorted by GNN")
