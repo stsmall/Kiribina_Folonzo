@@ -162,8 +162,7 @@ def parse_args(args_in):
     """Parse args."""
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("vcf", type=str, required=True,
-                        help="VCF type file to reorder")
+    parser.add_argument("vcf", type=str, help="VCF type file to reorder")
     return(parser.parse_args(args_in))
 
 
