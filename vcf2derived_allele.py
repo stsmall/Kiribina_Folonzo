@@ -44,14 +44,12 @@ def reset_genotypes(genotypes, allele_index):
         DESCRIPTION.
 
     """
-    breakpoint()
     for i, gt in enumerate(genotypes):
         if ":" in gt:
             gt = gt.split(":")[0]
         assert len(gt) == 3, f"misformed gt field sample {i}, {gt}"
         try:
-            gt[0] = allele_index[gt[0]]
-            gt[2] = allele_index[gt[2]]
+            gt = allele_index[gt[0]] + gt[1] + allele_index[gt[2]]
         except KeyError:
             # ./.
             pass
@@ -142,7 +140,6 @@ def repolarize(vcf_file, ancprob=0.90):
                     sys.exit()
                 # reset genotype ID
                 if ref != ancestral:
-                    breakpoint()
                     # rearrange so derived is ref
                     ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
                     allele_index = {str(old_index): str(ordered_alleles.index(allele))
