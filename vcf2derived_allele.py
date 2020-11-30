@@ -102,7 +102,9 @@ def repolarize(vcf_file, mask, ancprob=0.90):
 
     if mask:
         maskfile = open(f"chr{chrom}.polarize.mask.bed", 'w')
-    outfile = open(f'{vcf_file.rstrip("vcf.gz")}derived.vcf', 'w')
+        outfile = open(f'{vcf_file.rstrip(".vcf.gz")}.derived.noerr.vcf', 'w')
+    else:
+        outfile = open(f'{vcf_file.rstrip(".vcf.gz")}.derived.vcf', 'w')
     # read vcf
     low_count = 0
     site_count = 0
