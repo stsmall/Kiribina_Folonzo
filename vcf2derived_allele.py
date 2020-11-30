@@ -22,7 +22,7 @@ import gzip
 import tqdm
 
 CHROMDICT = {}
-print("GLOBAL declared for chrom lengths, change line 49 or comment to infer from VCF")
+print("GLOBAL declared for chrom lengths, change line 26 or comment to infer from VCF")
 CHROMDICT = {"3": 93833897, "2": 99479438, "X": 17661987}
 
 
@@ -100,7 +100,8 @@ def repolarize(vcf_file, mask, ancprob=0.90):
                 break
     progressbar = tqdm.tqdm(total=CHROMDICT[chrom], desc="Read VCF", unit='sites')
 
-    maskfile = open("polarize.mask.bed", 'w')
+    if mask:
+        maskfile = open("polarize.mask.bed", 'w')
     outfile = open(f"{vcf_file}.derived", 'w')
     # read vcf
     low_count = 0
@@ -165,7 +166,8 @@ def repolarize(vcf_file, mask, ancprob=0.90):
             else:
                 print(line)
     outfile.close()
-    maskfile.close()
+    if mask:
+        maskfile.close()
     return low_count, site_count
 
 
