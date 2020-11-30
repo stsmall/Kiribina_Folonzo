@@ -44,6 +44,7 @@ def reset_genotypes(genotypes, allele_index):
         DESCRIPTION.
 
     """
+    breakpoint()
     for i, gt in enumerate(genotypes):
         if ":" in gt:
             gt = gt.split(":")[0]
@@ -141,6 +142,7 @@ def repolarize(vcf_file, ancprob=0.90):
                     sys.exit()
                 # reset genotype ID
                 if ref != ancestral:
+                    breakpoint()
                     # rearrange so derived is ref
                     ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
                     allele_index = {old_index: ordered_alleles.index(allele)
