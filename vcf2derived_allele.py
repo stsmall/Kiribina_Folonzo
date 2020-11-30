@@ -145,7 +145,7 @@ def repolarize(vcf_file, ancprob=0.90):
                     breakpoint()
                     # rearrange so derived is ref
                     ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
-                    allele_index = {old_index: ordered_alleles.index(allele)
+                    allele_index = {str(old_index): str(ordered_alleles.index(allele))
                                     for old_index, allele in enumerate(alleles)}
                     # reset all genotype fields
                     genotypes = v_cols[9:]
