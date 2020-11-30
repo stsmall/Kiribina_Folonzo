@@ -54,6 +54,7 @@ def reset_genotypes(genotypes, allele_index):
         except KeyError:
             # ./.
             pass
+        print(f"{genotypes[i]} -> {gt}")
         genotypes[i] = gt
     return genotypes
 
@@ -100,7 +101,6 @@ def repolarize(vcf_file, ancprob=0.90):
                 pos = int(v_cols[1])
                 break
     progressbar = tqdm.tqdm(total=CHROMDICT[chrom], desc="Read VCF", unit='sites')
-    breakpoint()
     outfile = open(f"{vcf_file}.derived", 'w')
     # read vcf
     low_count = 0
