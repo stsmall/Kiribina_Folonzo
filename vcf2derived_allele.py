@@ -122,7 +122,7 @@ def repolarize(vcf_file, ancprob=0.90):
                 alt = v_cols[4].split(",")
                 alleles = [ref] + alt
                 # ancestral state
-                *INFO = v_cols[7].split(";")
+                INFO = v_cols[7].split(";")
                 try:
                     for field in INFO:  # AA
                         if "AA" in field:
