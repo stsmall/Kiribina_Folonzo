@@ -154,7 +154,7 @@ def repolarize(vcf_file, ancprob=0.90):
                     outfile.write(line)
             else:
                 print(line)
-
+    outfile.close()
     return low_count, site_count
 
 
@@ -176,7 +176,8 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
-    repolarize(vcf_file)
+    low, site = repolarize(vcf_file)
+    print(f"low prob ancestral state = {low}, {low/site}")
 
 
 if __name__ == "__main__":
