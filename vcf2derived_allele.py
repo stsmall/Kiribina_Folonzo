@@ -109,9 +109,7 @@ def repolarize(vcf_file, mask, ancprob=0.90):
     reorder_count = 0
     with fopen(vcf_file, 'rt') as vcf:
         for line in vcf:
-            if line.startswith("#"):
-                outfile.write(line)
-            elif line.startswith("##contig"):
+            if line.startswith("##contig"):
                 if add_contig:
                     for c, l in CHROMDICT.items():
                         outfile.write(f"##contig=<ID={c},length={l}>\n")
@@ -164,7 +162,7 @@ def repolarize(vcf_file, mask, ancprob=0.90):
                 else:
                     outfile.write(line)
             else:
-                print(line)
+                outfile.write(line)
     outfile.close()
     if mask:
         maskfile.close()
