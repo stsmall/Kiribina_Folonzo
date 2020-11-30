@@ -134,11 +134,11 @@ def repolarize(vcf_file, mask, ancprob=0.90):
                             ancestral = field.split("=")[1]
                         if "AAProb=" in field:
                             probability = float(field.split("=")[1])
-                            if probability < ancprob:
-                                low_count += 1
-                                if mask is True:
-                                    maskfile.write(f"{chrom}\t{var_pos - 1}\t{var_pos}\n")
-                                    continue
+                    if probability < ancprob:
+                        low_count += 1
+                        if mask is True:
+                            maskfile.write(f"{chrom}\t{var_pos - 1}\t{var_pos}\n")
+                            continue
                 except IndexError:
                     print("Improper AA field")
                     sys.exit()
