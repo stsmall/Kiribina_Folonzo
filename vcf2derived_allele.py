@@ -53,12 +53,11 @@ def reset_genotypes(genotypes, allele_index):
         except KeyError:
             # ./.
             pass
-        print(f"{genotypes[i]} -> {gt}")
         genotypes[i] = gt
     return genotypes
 
 
-def repolarize(vcf_file, ancprob=0.90):
+def repolarize(vcf_file, mask, ancprob=0.90):
     """Reorient VCF to ancestral allele.
 
     Parameters
@@ -100,10 +99,13 @@ def repolarize(vcf_file, ancprob=0.90):
                 pos = int(v_cols[1])
                 break
     progressbar = tqdm.tqdm(total=CHROMDICT[chrom], desc="Read VCF", unit='sites')
+
+    maskfile = open("polarize.mask.bed", 'w')
     outfile = open(f"{vcf_file}.derived", 'w')
     # read vcf
     low_count = 0
     site_count = 0
+    reorder_count = 0
     with fopen(vcf_file, 'rt') as vcf:
         for line in vcf:
             if line.startswith("#"):
@@ -116,9 +118,9 @@ def repolarize(vcf_file, ancprob=0.90):
             elif not line.startswith("#"):
                 v_cols = line.split()
                 chrom = v_cols[0]
-                variant_pos = int(v_cols[1])
-                progressbar.update(variant_pos - pos)
-                pos = variant_pos
+                var_pos = int(v_cols[1])
+                progressbar.update(var_pos - pos)
+                pos = var_pos
                 site_count += 1
                 # alleles
                 ref = v_cols[3]
@@ -135,11 +137,15 @@ def repolarize(vcf_file, ancprob=0.90):
                             probability = float(field.split("=")[1])
                             if probability < ancprob:
                                 low_count += 1
+                                if mask is True:
+                                    maskfile.write(f"{chrom}\t{var_pos - 1}\t{var_pos}\n")
+                                    continue
                 except IndexError:
                     print("Improper AA field")
                     sys.exit()
                 # reset genotype ID
                 if ref != ancestral:
+                    reorder_count += 1
                     # rearrange so derived is ref
                     ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
                     allele_index = {str(old_index): str(ordered_alleles.index(allele))
@@ -159,6 +165,7 @@ def repolarize(vcf_file, ancprob=0.90):
             else:
                 print(line)
     outfile.close()
+    maskfile.close()
     return low_count, site_count
 
 
@@ -167,6 +174,7 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("vcf", type=str, help="VCF type file to reorder")
+    parser.add_arguement("--mask", action="store_true")
     return(parser.parse_args(args_in))
 
 
@@ -177,10 +185,11 @@ def main():
     #  Gather args
     # =========================================================================
     vcf_file = args.vcf
+    mask = args.mask
     # =========================================================================
     #  Main executions
     # =========================================================================
-    low, site = repolarize(vcf_file)
+    low, site = repolarize(vcf_file, mask)
     print(f"low prob ancestral state = {low}, {low/site}")
 
 
