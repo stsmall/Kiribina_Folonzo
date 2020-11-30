@@ -174,7 +174,7 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("vcf", type=str, help="VCF type file to reorder")
-    parser.add_arguement("--mask", action="store_true")
+    parser.add_argument("--mask", action="store_true")
     return(parser.parse_args(args_in))
 
 
