@@ -100,7 +100,7 @@ def repolarize(vcf_file, ancprob=0.90):
                 pos = int(v_cols[1])
                 break
     progressbar = tqdm.tqdm(total=CHROMDICT[chrom], desc="Read VCF", unit='sites')
-
+    breakpoint()
     outfile = open(f"{vcf_file}.derived", 'w')
     # read vcf
     low_count = 0
@@ -119,7 +119,7 @@ def repolarize(vcf_file, ancprob=0.90):
                 chrom = v_cols[0]
                 variant_pos = int(v_cols[1])
                 progressbar.update(variant_pos - pos)
-                variant_pos = pos
+                pos = variant_pos
                 site_count += 1
                 # alleles
                 ref = v_cols[3]
@@ -130,9 +130,9 @@ def repolarize(vcf_file, ancprob=0.90):
                 INFO = v_cols[7].split(";")
                 try:
                     for field in INFO:  # AA
-                        if "AA" in field:
+                        if "AA=" in field:
                             ancestral = field.split("=")[1]
-                        if "AAProb" in field:
+                        if "AAProb=" in field:
                             probability = float(field.split("=")[1])
                             if probability < ancprob:
                                 low_count += 1
