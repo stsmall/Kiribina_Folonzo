@@ -101,8 +101,8 @@ def repolarize(vcf_file, mask, ancprob=0.90):
     progressbar = tqdm.tqdm(total=CHROMDICT[chrom], desc="Read VCF", unit='sites')
 
     if mask:
-        maskfile = open("polarize.mask.bed", 'w')
-    outfile = open(f"{vcf_file}.derived", 'w')
+        maskfile = open(f"{chrom}polarize.mask.bed", 'w')
+    outfile = open(f'{vcf_file.rstrip("vcf.gz")}derived.vcf', 'w')
     # read vcf
     low_count = 0
     site_count = 0
