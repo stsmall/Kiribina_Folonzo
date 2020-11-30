@@ -47,7 +47,7 @@ def reset_genotypes(genotypes, allele_index):
     for i, gt in enumerate(genotypes):
         if ":" in gt:
             gt = gt.split(":")[0]
-        assert len(gt) == 3, f"misformed gt field sample {i}"
+        assert len(gt) == 3, f"misformed gt field sample {i}, {gt}"
         try:
             gt[0] = allele_index[gt[0]]
             gt[2] = allele_index[gt[2]]
