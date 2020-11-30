@@ -82,14 +82,13 @@ def repolarize(vcf_file, ancprob=0.90):
         fopen = gzip.open
     else:
         fopen = open
-    outfile = open(f"{vcf_file}.derived", 'w')
 
     # set progress bar and chrom lengths
     with fopen(vcf_file, 'rt') as pgb:
         for line in pgb:
             if line.startswith("##contig"):
                 if CHROMDICT:
-                    pass
+                    add_contig = True
                 else:
                     chrom, length = line.split(",")
                     chrom = chrom.split("=")[2]
@@ -102,6 +101,7 @@ def repolarize(vcf_file, ancprob=0.90):
                 break
     progressbar = tqdm.tqdm(total=CHROMDICT[chrom], desc="Read VCF", unit='sites')
 
+    outfile = open(f"{vcf_file}.derived", 'w')
     # read vcf
     low_count = 0
     site_count = 0
@@ -109,6 +109,11 @@ def repolarize(vcf_file, ancprob=0.90):
         for line in vcf:
             if line.startswith("#"):
                 outfile.write(line)
+            elif line.startswith("##contig"):
+                if add_contig:
+                    for c, l in CHROMDICT.items():
+                        outfile.write(f"##contig=<ID={c},length={l}>\n")
+                    add_contig = False
             elif not line.startswith("#"):
                 v_cols = line.split()
                 chrom = v_cols[0]
@@ -141,12 +146,12 @@ def repolarize(vcf_file, ancprob=0.90):
                     allele_index = {old_index: ordered_alleles.index(allele)
                                     for old_index, allele in enumerate(alleles)}
                     # reset all genotype fields
-                    genotypes = v_cols[8:]
+                    genotypes = v_cols[9:]
                     genotypes = reset_genotypes(genotypes, allele_index)
                     # replace vcf fields
                     v_cols[3] = ancestral
                     v_cols[4] = ",".join(list(set(alleles)-{ancestral}))
-                    v_cols[8:] = genotypes
+                    v_cols[9:] = genotypes
                     v_cols_line = "\t".join(v_cols)
                     # write back to vcf line
                     outfile.write(f"{v_cols_line}\n")
