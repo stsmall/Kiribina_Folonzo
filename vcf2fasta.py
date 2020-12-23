@@ -107,16 +107,16 @@ def vcf2fasta(fastaFile, vcfdict, phased, NaRef, bed_coords):
                             start = int(start)
                             end = int(end)
                             if phased:
-                                out_file.write(">{}_0:{}\n{}\n".format(header, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
-                                out_file.write(">{}_1:{}\n{}\n".format(header, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
+                                out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
+                                out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
                             else:
-                                out_file.write(">{}:{}\n{}\n".format(header, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
+                                out_file.write(">{}:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
                 else:
                     if phased:
-                        out_file.write(">{}_0\n{}\n".format(header, ''.join(seq)))
-                        out_file.write(">{}_1\n{}\n".format(header, ''.join(seq2)))
+                        out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
+                        out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
                     else:
-                        out_file.write(">{}\n{}\n".format(header, ''.join(seq)))
+                        out_file.write(">{}:{}\n{}\n".format(name, header, ''.join(seq)))
 
 
 
