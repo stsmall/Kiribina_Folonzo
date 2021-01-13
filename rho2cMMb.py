@@ -18,7 +18,7 @@ I did it this way was because
     b) the distances between SNPs varies.
 If one were to take the arithmetic mean of the rho estimates obtained from LD,
 a physically lose pair of SNPs that, for one reason or another, have yielded a
-spuriously high rho estimate could pull you mean rho for the chromosome up.
+spuriously high rho estimate could pull your mean rho for the chromosome up.
 Accounting for the distances between SNPs by dealing with the cumulative rho
 (what I called the frequency weighted mean in the Genetics paper).
 
@@ -35,10 +35,10 @@ Assumes:
 #
 # for i in range(len(SNPpos))
 #      rhoTemp = (rho[i] * (SNPpos[i] - SNPpos[i-1]))
-#      rhocum.append(rhocum[-1] + rhoTemp)
+#      rhocum.append(rhocum[-1] + rhoTemp)  # here rhocum[-1] is the previous total cum
 # cM = []
 # for  j in rhocum:
-#     cMperSNP =  (j / rhocum[-1])
+#     cMperSNP =  (j / rhocum[-1])  # here rhocum[-1] is the total cum
 #     cM.append(cMperSNP)
 #
 # =============================================================================
@@ -78,6 +78,7 @@ https://doi.org/10.1534/genetics.105.044800
 import argparse
 import sys
 import numpy as np
+from math import log
 
 
 print("using hard coded An. funestus parameters... consider changing globals ln 84 & 86")
@@ -176,52 +177,51 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
     map_size = mapdict[chrom]
     chrom_len = chromdict[chrom]
 
+    # general file of cM, and cMMb
     cMMb_out = open(f"{chrom}.cMMb.out.txt", 'w')
-    cMMb_out.write("pos\tcM\tcMMb\tcumcM\tmap_pos\n")
+    cMMb_out.write("pos\tcM\tcMMb\tcumcM\tcMh\tcMhMb\tcumcMh\n")
+    # specific file for shapeit
     shapeit_out = open(f"{chrom}.shapeit.out.txt", 'w')
-    shapeit_out.write("pos\tchr\tcM\tmap_pos\n")
-    shapeit_out.write(f"1\t{chrom}\t0\t0\n")
+    shapeit_out.write("pos\tchr\tcM\n")
 
-    avg_bp = []
-    weights = []
     snp_list = []
     cM_list = []
-    cumcM_list = []
-    cum_cM_total = 0
+    cMh_list = []
     with open(relernn_file) as rhomap:
         line = rhomap.readline()
         for line in rhomap:
             x = line.split()
             chrom = x[0]
             start = int(x[1])
-            end = int(x[2])
-            c_rate = float(x[4])
-            if c_rate == 0.0:
-                c_rate = float(x[-1])
-            #
-            chrom_len = chromdict[chrom]
-            bps = end - start
-            weights.append(bps / chrom_len)
-            try:
-                avg_bp.append(0.01/c_rate)
-            except ZeroDivisionError:
-                continue
-            #
-            cM = (bps * c_rate) / .01
             snp_list.append(start)
-            cM_list.append(cM)
-            cum_cM_total += cM
-            cumcM_list.append(cum_cM_total)
-        for snp, cm, ccm in zip(snp_list, cM_list, cumcM_list):
-            map_pos = (ccm/cum_cM_total) * map_size
-            cMMb_out.write(f"{snp}\t{cm}\t{cm*1e6*.01}\t{ccm}\t{map_pos}\n")
-            shapeit_out.write(f"{snp}\t{chrom}\t{ccm}\t{map_pos}\n")
+            end = int(x[2])
+            sites = int(x[3])
+            c_rate = float(x[4])
+            c_rate_l = float(x[5])
+            c_rate_h = float(x[6])
+            if c_rate == 0.0:
+                c_rate = float(x[-1])  # take the highest
+
+            bps = end - start
+            # general
+            cM = c_rate / .01
+            cM_list.append(cM * bps)
+            # wiki
+            cMh = 50*log(1/(1-(2*c_rate)))
+            cMh_list.append(cMh * bps)
+
+    cum_cM = np.cumsum(cM_list)
+    cum_cMh = np.cumsum(cMh_list)
+
+    for snp, cm, ccm, cmh, ccmh in zip(snp_list, cM_list, cum_cM, cMh_list, cum_cMh):
+        #map_pos = (ccm/cum_cM_total) * map_size
+        # Position\tcM\tcMMb\tcumcM
+        cMMb_out.write(f"{snp}\t{cm}\t{cm*1e4}\t{ccm}\t{cmh}\t{cmh*1e4}\t{ccmh}\n")
+        shapeit_out.write(f"{snp}\t{chrom}\t{ccm}\n")
     cMMb_out.close()
     shapeit_out.close()
-    avg_bp_arr = np.array(avg_bp)
-    weights_arr = np.array(weights)
-    print(f"Avg bp cM:{np.mean(avg_bp_arr)}")
-    print(f"Weighted Avg bp cM:{np.average(avg_bp_arr, weights=weights_arr)}")
+    print(f"avg cMMb: {cum_cM[-1]/(end*1e-6)}")
+    print(f"avg cMMb: {cum_cMh[-1]/(end*1e-6)}")
     return None
 
 
@@ -407,16 +407,19 @@ def main():
     if FORMAT == "ReLERNN":
         read_relernn(LD_FILE, MAP_DICT, CHROM_DICT)
     else:
+        # read format
         if FORMAT == "LDhelmet":
             SNP_LIST, RHO_LIST = read_helmet(LD_FILE)
         elif FORMAT == "LDJump":
             SNP_LIST, RHO_LIST = read_jump(LD_FILE)
         elif FORMAT == "iSMC":
             SNP_LIST, RHO_LIST = read_ismc(LD_FILE)
+        # calc map
         if BOOKER is True:
             POS, CMMB, CM, PRHO = recomb_map_booker(SNP_LIST, RHO_LIST, MAP_DICT)
         else:
             POS, CMMB, CM, PRHO = recomb_map(SNP_LIST, RHO_LIST, NE, MAP_DICT)
+        # write out
         write_recomb(POS, CMMB, CM, PRHO)
 
 

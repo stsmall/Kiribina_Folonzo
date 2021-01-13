@@ -103,14 +103,17 @@ def vcf2fasta(fastaFile, vcfdict, phased, NaRef, bed_coords):
                 if bed_coords:
                     with open(bed_coords) as bed:
                         for line in bed:
-                            chrom, start, end = line.split()
-                            start = int(start)
-                            end = int(end)
-                            if phased:
-                                out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
-                                out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
+                            if line.startswith("chrom"):
+                                pass
                             else:
-                                out_file.write(">{}:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
+                                chrom, start, end = line.split()
+                                start = int(start)
+                                end = int(end)
+                                if phased:
+                                    out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
+                                    out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
+                                else:
+                                    out_file.write(">{}:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
                 else:
                     if phased:
                         out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
