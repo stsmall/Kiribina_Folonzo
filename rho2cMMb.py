@@ -186,6 +186,7 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
 
     snp_list = [0]
     cM_list = [0]
+    cmmb_list = [0]
     with open(relernn_file) as rhomap:
         line = rhomap.readline()
         for line in rhomap:
@@ -200,16 +201,16 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
             c_rate_h = float(x[6])
             if c_rate == 0.0:
                 c_rate = float(x[-1])  # take the highest
-
+            cmmb_list.append(c_rate * 1e8)  # (c_rate/.01) * 1e6
             bps = end - start
             cM = 50*log(1/(1-(2*c_rate)))
             cM_list.append(cM * bps)
 
     cum_cM = np.cumsum(cM_list)
-    for snp, cm, ccm in zip(snp_list, cM_list, cum_cM):
+    for snp, cm, ccm, cmmb in zip(snp_list, cM_list, cum_cM, cmmb_list):
         #map_pos = (ccm/cum_cM_total) * map_size
         # Position\tcM\tcMMb\tcumcM
-        cMMb_out.write(f"{snp}\t{cm}\t{cm*1e4}\t{ccm}\n")
+        cMMb_out.write(f"{snp}\t{cm}\t{cmmb}\t{ccm}\n")
         shapeit_out.write(f"{snp}\t{chrom}\t{ccm}\n")
     cMMb_out.close()
     shapeit_out.close()
