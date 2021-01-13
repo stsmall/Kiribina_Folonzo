@@ -179,14 +179,13 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
 
     # general file of cM, and cMMb
     cMMb_out = open(f"{chrom}.cMMb.out.txt", 'w')
-    cMMb_out.write("pos\tcM\tcMMb\tcumcM\tcMh\tcMhMb\tcumcMh\n")
+    cMMb_out.write("pos\tcM\tcMMb\tcumcM\n")
     # specific file for shapeit
     shapeit_out = open(f"{chrom}.shapeit.out.txt", 'w')
     shapeit_out.write("pos\tchr\tcM\n")
 
     snp_list = []
     cM_list = []
-    cMh_list = []
     with open(relernn_file) as rhomap:
         line = rhomap.readline()
         for line in rhomap:
@@ -203,25 +202,18 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
                 c_rate = float(x[-1])  # take the highest
 
             bps = end - start
-            # general
-            cM = c_rate / .01
+            cM = 50*log(1/(1-(2*c_rate)))
             cM_list.append(cM * bps)
-            # wiki
-            cMh = 50*log(1/(1-(2*c_rate)))
-            cMh_list.append(cMh * bps)
 
     cum_cM = np.cumsum(cM_list)
-    cum_cMh = np.cumsum(cMh_list)
-
-    for snp, cm, ccm, cmh, ccmh in zip(snp_list, cM_list, cum_cM, cMh_list, cum_cMh):
+    for snp, cm, ccm in zip(snp_list, cM_list, cum_cM):
         #map_pos = (ccm/cum_cM_total) * map_size
         # Position\tcM\tcMMb\tcumcM
-        cMMb_out.write(f"{snp}\t{cm}\t{cm*1e4}\t{ccm}\t{cmh}\t{cmh*1e4}\t{ccmh}\n")
+        cMMb_out.write(f"{snp}\t{cm}\t{cm*1e4}\t{ccm}\n")
         shapeit_out.write(f"{snp}\t{chrom}\t{ccm}\n")
     cMMb_out.close()
     shapeit_out.close()
     print(f"avg cMMb: {cum_cM[-1]/(end*1e-6)}")
-    print(f"avg cMMb: {cum_cMh[-1]/(end*1e-6)}")
     return None
 
 
