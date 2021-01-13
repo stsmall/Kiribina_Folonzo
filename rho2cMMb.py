@@ -184,16 +184,16 @@ def read_relernn(relernn_file, mapdict, chromdict, boots=False):
     shapeit_out = open(f"{chrom}.shapeit.out.txt", 'w')
     shapeit_out.write("pos\tchr\tcM\n")
 
-    snp_list = []
-    cM_list = []
+    snp_list = [0]
+    cM_list = [0]
     with open(relernn_file) as rhomap:
         line = rhomap.readline()
         for line in rhomap:
             x = line.split()
             chrom = x[0]
             start = int(x[1])
-            snp_list.append(start)
             end = int(x[2])
+            snp_list.append(end)
             sites = int(x[3])
             c_rate = float(x[4])
             c_rate_l = float(x[5])
