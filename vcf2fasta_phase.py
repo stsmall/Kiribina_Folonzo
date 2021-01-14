@@ -68,7 +68,7 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_dt):
                     with open(bed_coords) as bed:
                         for line in bed:
                             if line.startswith("chrom"):
-                                continue
+                                pass
                             else:
                                 chrom, start, end = line.split()
                                 start = int(start)
@@ -80,7 +80,7 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_dt):
                     out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
 
 
-def vcfsample(vcf, fastaFile, bed_coords):
+def vcfsample(vcf):
     """reads a vcf file and stores info in a dictionary. Here using a tuple
        for the key
     """
@@ -112,9 +112,9 @@ def mask_dict(mask_file):
     with open(mask_file, 'r') as mask:
         for line in mask:
             m_lin = line.split()
-            id = m_lin[0]
+            idn = m_lin[0]
             pos = m_lin[2:]
-            mask_dt[id] = {k: '' for k in pos}
+            mask_dt[idn] = {k: '' for k in pos}
 
     return mask_dt
 
@@ -147,7 +147,7 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
-    vcfdict = vcfsample(in_vcf, in_fasta, bed_coords)
+    vcfdict = vcfsample(in_vcf)
     mask_dt = mask_dict(mask_file)
     vcf2fasta(in_fasta, vcfdict, bed_coords, mask_dt)
 
