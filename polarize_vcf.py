@@ -47,7 +47,7 @@ def read_estsfs(ingroup, estOut):
             pos = line[1]
             prob_maj = line[2]
             site = f'{chrom}_{pos}'
-            est_dict[site] = [prob_maj]
+            est_dict[site] = [float(prob_maj)]
 
     with gzip.open(ingroup, 'r') as counts:
         line = next(counts)  # skip header
