@@ -61,8 +61,8 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_dt):
                 # add mask
                 if mask_dt:
                     for k in mask_dt[name].keys():
-                        seq[k-1] = "N"
-                        seq2[k-1] = "N"
+                        seq[int(k)-1] = "N"
+                        seq2[int(k)-1] = "N"
                 # when done with the header, write
                 if bed_coords:
                     with open(bed_coords) as bed:
