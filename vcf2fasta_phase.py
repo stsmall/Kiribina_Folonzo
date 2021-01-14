@@ -14,7 +14,6 @@ usage: python vcf2fasta.py VCF FASTA-REF
 
 from Bio import SeqIO
 from collections import defaultdict
-import tqdm
 import argparse
 import re
 import sys
@@ -40,7 +39,7 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_dt):
                 seq = list(sequence)  # strings are immutable
                 seq2 = list(sequence)
                 # add SNPs
-                for items in tqdm(vcfdict[name][header]):
+                for items in vcfdict[name][header]:
                     pos, allele = items
                     if len(allele) > 1:  # phased
                         # first haplotype
