@@ -106,12 +106,21 @@ def addAA2vcf(vcfFile, est_dict):
                 chrom = line[0]
                 pos = line[1]
                 pos = int(pos)
+                ref = line[3]
+                alt = line[4]
                 site = f'{chrom}_{pos}'
                 aa = line[7].split(";")
                 maj_prob, maj_allele = est_dict[site]
-                aa.insert(0, f'AA={maj_allele};AAProb={maj_prob}')
+                if maj_allele == ref:
+                    min_allele = alt
+                elif maj_allele == alt:
+                    min_allele = ref
+                if maj_prob > 0.60:
+                    aa.insert(0, f'AA={maj_allele};AAProb={maj_prob}')
+                else:
+                    aa.insert(0, f'AA={min_allele};AAProb={1-maj_prob}')
                 line[7] = ";".join(aa)
-                ancbed.write(f'{chrom}\t{pos-1}\t{pos}\t{maj_allele}\t{maj_prob}\n')
+                ancbed.write(f'{chrom}\t{pos-1}\t{pos}\t{maj_allele}\t{min_allele}\t{maj_prob}\n')
                 vcf_tab = "\t".join(line)
                 pvcf.write(f'{vcf_tab}\n')
     pvcf.close()
