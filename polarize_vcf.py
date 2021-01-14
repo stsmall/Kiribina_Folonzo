@@ -66,7 +66,7 @@ def read_estsfs(ingroup, estOut):
             try:
                 est_dict[site].extend(maj)
             except KeyError:
-                est_dict[site] = [0.0, maj]
+                continue
 
     return est_dict
 

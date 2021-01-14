@@ -15,34 +15,33 @@ args = parser.parse_args()
 
 
 def vcf2fasta(fastaFile, ancbed):
-    """reads in fasta, changes base using dictionary entry. note that fasta
-       will be 0 based so position wll be -1
-       notes on Biopython: SeqIO.to_dict() which builds all sequences into a
-       dictionary and save it in memory
-       SeqIO.index() which builds a dictionary without putting the sequences
-       in memory
-    """
-
     fastadict = {}
     with open(ancbed, 'r') as bed:
         for line in bed:
             x = line.split()
             chrom = x[0]
             pos = int(x[1])  #  0 based
-            fastadict[pos] = x[2]
+            maj_allele = x[3]
+            min_allele = x[4]
+            maj_prob = float(x[5])
+            if maj_prob > .65:
+                fastadict[pos] = maj_allele
+            else:
+                fastadict[pos] = min_allele
 
     fasta_sequences = SeqIO.parse(fastaFile, 'fasta')
-    with open("ancRef.fasta", 'w') as out_file:
+    with open(f"{chrom}.AA.fasta", 'w') as out_file:
         for fasta in fasta_sequences:
             # read in header and sequence
             header, sequence = fasta.id, str(fasta.seq)
+            assert header == chrom, "only 1 chrom entry allowed"
             seq = list(sequence)  # strings are immutable
-            for pos in fastadict[header]:
-                allele = fastadict[header][pos]
+            for pos in fastadict.keys():
+                allele = fastadict[pos]
                 # replace base w/ allele at pos-1
-                if seq[pos-1].islower():
+                if seq[pos].islower():
                     allele = allele.lower()
-                seq[pos-1] = allele
+                seq[pos] = allele
             # when done with the header, write
             out_file.write(">{}\n{}\n".format(header, ''.join(seq)))
     return(None)
@@ -50,5 +49,3 @@ def vcf2fasta(fastaFile, ancbed):
 
 if __name__ == "__main__":
     vcf2fasta(args.fasta, args.ancestral)
-
-
