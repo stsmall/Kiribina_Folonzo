@@ -31,29 +31,29 @@ def seq_mask(mask_file, name):
 
 
 def vcf2fasta(fasta_file, vcfdict, bed_coords, mask_file):
-    """reads in fasta, changes base using dictionary entry. note that fasta
-       will be 0 based so position wll be -1
-       notes on Biopython: SeqIO.to_dict() which builds all sequences into a
-       dictionary and save it in memory
-       SeqIO.index() which builds a dictionary without putting the sequences
-       in memory
+    """Reads in fast, changes base using dictionary entry.
+
+    note that fasta will be 0 based so position wll be -1
+    SeqIO.index(fasta_file, 'fasta') which builds a dictionary without putting
+    the sequences in memory
     """
     for name in vcfdict.keys():
-        fastaseqs = SeqIO.parse(fasta_file, 'fasta')
-        breakpoint()
-        # fastadict = SeqIO.to_dict(fasta, 'fasta')
+        fastadict = SeqIO.index(fasta_file, 'fasta')
         with open(name + ".fasta", 'w') as out_file:
-            # for sample, seq in fastadict.items():
-            # read in header and sequence
-            for fasta in fastaseqs:
-                header, sequence = fasta.id, str(fasta.seq)
+            for chrom in fastadict.keys():
+                header = fastadict[chrom].id
+                sequence = str(fastadict[chrom].seq)   # strings are immutable
                 # add mask
                 if mask_file:
+                    breakpoint()
                     mask_ls = seq_mask(mask_file, name)
                     m_seq = np.char.array(sequence)
                     m_seq[mask_ls] = 'N'
-                seq = list(m_seq)  # strings are immutable
-                seq2 = list(m_seq)
+                    seq = list(m_seq)
+                    seq2 = list(m_seq)
+                else:
+                    seq = list(sequence)
+                    seq2 = list(sequence)
                 # add SNPs
                 for items in vcfdict[name]:
                     pos, allele = items
