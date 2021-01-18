@@ -14,12 +14,22 @@ usage: python vcf2fasta.py VCF FASTA-REF
 
 from Bio import SeqIO
 from collections import defaultdict
+import numpy as np
 import argparse
 import re
 import sys
 
 
-def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_dt):
+def seq_mask(mask_file, name):
+    with open(mask_file) as mf:
+        for line in mf:
+            if line.startswith(name):
+                ma = np.array(line.strip().split()[2:]) - 1
+                break
+    return ma
+
+
+def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_file):
     """reads in fasta, changes base using dictionary entry. note that fasta
        will be 0 based so position wll be -1
        notes on Biopython: SeqIO.to_dict() which builds all sequences into a
@@ -28,56 +38,55 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_dt):
        in memory
     """
     for name in vcfdict.keys():
-        fasta_sequences = SeqIO.parse(fastaFile, 'fasta')
+        fasta = SeqIO.parse(fastaFile, 'fasta')
         # fastadict = SeqIO.to_dict(fasta, 'fasta')
         with open(name + ".fasta", 'w') as out_file:
             # for sample, seq in fastadict.items():
-            for fasta in fasta_sequences:
-                # read in header and sequence
-                header, sequence = fasta.id, str(fasta.seq)
-                # retrieve position from dictionary of VCF matching header
-                seq = list(sequence)  # strings are immutable
-                seq2 = list(sequence)
-                # add SNPs
-                for items in vcfdict[name][header]:
-                    pos, allele = items
-                    if len(allele) > 1:  # phased
-                        # first haplotype
-                        if allele[0] == "N":
-                            allele1 = "N"
-                        elif seq[pos-1].islower():  # soft masked ref
-                            allele1 = allele[0].lower()
+            # read in header and sequence
+            header, sequence = fasta.id, str(fasta.seq)
+            # add mask
+            if mask_file:
+                mask_ls = seq_mask(mask_file, name)
+                m_seq = np.char.array(sequence)
+                m_seq[mask_ls] = 'N'
+            seq = list(m_seq)  # strings are immutable
+            seq2 = list(m_seq)
+            # add SNPs
+            for items in vcfdict[name][header]:
+                pos, allele = items
+                assert len(allele) > 1
+                if seq[pos-1] != "N":
+                    # first haplotype
+                    if allele[0] == "N":
+                        allele1 = "N"
+                    elif seq[pos-1].islower():  # soft masked ref
+                        allele1 = allele[0].lower()
+                    else:
+                        allele1 = allele[0]
+                    seq[pos-1] = allele1
+                    # second haplotype
+                    if allele[1] == "N":
+                        allele2 = "N"
+                    elif seq2[pos-1].islower():
+                        allele2 = allele[1].lower()
+                    else:
+                        allele2 = allele[1]
+                    seq2[pos-1] = allele2
+            # when done with the header, write
+            if bed_coords:
+                with open(bed_coords) as bed:
+                    for line in bed:
+                        if line.startswith("chrom"):
+                            pass
                         else:
-                            allele1 = allele[0]
-                        seq[pos-1] = allele1
-                        # second haplotype
-                        if allele[1] == "N":
-                            allele2 = "N"
-                        elif seq2[pos-1].islower():
-                            allele2 = allele[1].lower()
-                        else:
-                            allele2 = allele[1]
-                        seq2[pos-1] = allele2
-                # add mask
-                if mask_dt:
-                    for k in mask_dt[name].keys():
-                        seq[int(k)-1] = "N"
-                        seq2[int(k)-1] = "N"
-                # when done with the header, write
-                if bed_coords:
-                    with open(bed_coords) as bed:
-                        for line in bed:
-                            if line.startswith("chrom"):
-                                pass
-                            else:
-                                chrom, start, end = line.split()
-                                start = int(start)
-                                end = int(end)
-                                out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
-                                out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
-                else:
-                    out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
-                    out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
+                            chrom, start, end = line.split()
+                            start = int(start)
+                            end = int(end)
+                            out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
+                            out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
+            else:
+                out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
+                out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
 
 
 def vcfsample(vcf):
@@ -99,24 +108,12 @@ def vcfsample(vcf):
                     ALLELE = ''
                     for al in gt:
                         try:
-                            ALLELE += alleles[int(al)]
+                            ALLELE += alleles[int(al)]  # if missing ./. will be .
                         except ValueError:
-                            ALLELE += "N"
+                            ALLELE += "N"  # make . an 'N'
                     vcfdict[samples[sample]][CHR].append([POS, ALLELE])
 
     return vcfdict
-
-
-def mask_dict(mask_file):
-    mask_dt = {}
-    with open(mask_file, 'r') as mask:
-        for line in mask:
-            m_lin = line.split()
-            idn = m_lin[0]
-            pos = m_lin[2:]
-            mask_dt[idn] = {k: '' for k in pos}
-
-    return mask_dt
 
 
 def parse_args(args_in):
@@ -148,8 +145,7 @@ def main():
     #  Main executions
     # =========================================================================
     vcfdict = vcfsample(in_vcf)
-    mask_dt = mask_dict(mask_file)
-    vcf2fasta(in_fasta, vcfdict, bed_coords, mask_dt)
+    vcf2fasta(in_fasta, vcfdict, bed_coords, mask_file)
 
 
 if __name__ == "__main__":
