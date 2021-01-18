@@ -16,6 +16,7 @@ from Bio import SeqIO
 from collections import defaultdict
 import numpy as np
 import argparse
+import tqdm
 import re
 import sys
 
@@ -38,69 +39,79 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_file):
        in memory
     """
     for name in vcfdict.keys():
-        fasta = SeqIO.parse(fastaFile, 'fasta')
+        fastaseqs = SeqIO.parse(fastaFile, 'fasta')
+        breakpoint()
         # fastadict = SeqIO.to_dict(fasta, 'fasta')
         with open(name + ".fasta", 'w') as out_file:
             # for sample, seq in fastadict.items():
             # read in header and sequence
-            header, sequence = fasta.id, str(fasta.seq)
-            # add mask
-            if mask_file:
-                mask_ls = seq_mask(mask_file, name)
-                m_seq = np.char.array(sequence)
-                m_seq[mask_ls] = 'N'
-            seq = list(m_seq)  # strings are immutable
-            seq2 = list(m_seq)
-            # add SNPs
-            for items in vcfdict[name][header]:
-                pos, allele = items
-                assert len(allele) > 1
-                if seq[pos-1] != "N":
-                    # first haplotype
-                    if allele[0] == "N":
-                        allele1 = "N"
-                    elif seq[pos-1].islower():  # soft masked ref
-                        allele1 = allele[0].lower()
-                    else:
-                        allele1 = allele[0]
-                    seq[pos-1] = allele1
-                    # second haplotype
-                    if allele[1] == "N":
-                        allele2 = "N"
-                    elif seq2[pos-1].islower():
-                        allele2 = allele[1].lower()
-                    else:
-                        allele2 = allele[1]
-                    seq2[pos-1] = allele2
-            # when done with the header, write
-            if bed_coords:
-                with open(bed_coords) as bed:
-                    for line in bed:
-                        if line.startswith("chrom"):
-                            pass
+            for fasta in fastaseqs:
+                header, sequence = fasta.id, str(fasta.seq)
+                # add mask
+                if mask_file:
+                    mask_ls = seq_mask(mask_file, name)
+                    m_seq = np.char.array(sequence)
+                    m_seq[mask_ls] = 'N'
+                seq = list(m_seq)  # strings are immutable
+                seq2 = list(m_seq)
+                # add SNPs
+                for items in vcfdict[name]:
+                    pos, allele = items
+                    assert len(allele) > 1
+                    if seq[pos-1] != "N":
+                        # first haplotype
+                        if allele[0] == "N":
+                            allele1 = "N"
+                        elif seq[pos-1].islower():  # soft masked ref
+                            allele1 = allele[0].lower()
                         else:
-                            chrom, start, end = line.split()
-                            start = int(start)
-                            end = int(end)
-                            out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
-                            out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
-            else:
-                out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
-                out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
+                            allele1 = allele[0]
+                        seq[pos-1] = allele1
+                        # second haplotype
+                        if allele[1] == "N":
+                            allele2 = "N"
+                        elif seq2[pos-1].islower():
+                            allele2 = allele[1].lower()
+                        else:
+                            allele2 = allele[1]
+                        seq2[pos-1] = allele2
+                # when done with the header, write
+                if bed_coords:
+                    with open(bed_coords) as bed:
+                        for line in bed:
+                            if line.startswith("chrom"):
+                                pass
+                            else:
+                                chrom, start, end = line.split()
+                                start = int(start)
+                                end = int(end)
+                                out_file.write(">{}_0:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq[start:end])))
+                                out_file.write(">{}_1:{}\n{}\n".format(name, f"{chrom}:{start}_{end}", ''.join(seq2[start:end])))
+                else:
+                    out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
+                    out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
 
 
 def vcfsample(vcf):
-    """reads a vcf file and stores info in a dictionary. Here using a tuple
-       for the key
+    """Read a vcf file and stores info in a dictionary.
+
+    Here using a tuple for the key
     """
-    vcfdict = defaultdict(lambda: defaultdict(list))
+    snp_count = 0
+    with open(vcf, 'r') as vcf:
+        for line in vcf:
+            if not line.startswith("#"):
+                snp_count += 1
+
+    progressbar = tqdm.tqdm(total=snp_count, desc="Read VCF", unit='snp')
+    vcfdict = defaultdict(list)
     with open(vcf, 'r') as vcf:
         for line in vcf:
             if line.startswith("#CHROM"):
                 samples = line.strip().split()
             if not line.startswith("#"):
+                progressbar.update(1)
                 x = line.strip().split()
-                CHR = x[0]
                 POS = int(x[1])
                 alleles = x[3] + x[4]
                 for sample in range(9, len(samples)):
@@ -111,8 +122,9 @@ def vcfsample(vcf):
                             ALLELE += alleles[int(al)]  # if missing ./. will be .
                         except ValueError:
                             ALLELE += "N"  # make . an 'N'
-                    vcfdict[samples[sample]][CHR].append([POS, ALLELE])
+                    vcfdict[samples[sample]].append([POS, ALLELE])
 
+    progressbar.close()
     return vcfdict
 
 
