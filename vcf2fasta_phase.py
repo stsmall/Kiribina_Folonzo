@@ -42,12 +42,12 @@ def vcf2fasta(fasta_file, vcfdict, bed_coords, mask_file):
         with open(name + ".fasta", 'w') as out_file:
             for chrom in fastadict.keys():
                 header = fastadict[chrom].id
-                sequence = str(fastadict[chrom].seq)   # strings are immutable
+                sequence = fastadict[chrom].seq   # strings are immutable
                 # add mask
                 if mask_file:
                     breakpoint()
                     mask_ls = seq_mask(mask_file, name)
-                    m_seq = np.char.array(sequence)
+                    m_seq = np.char.array(list(sequence))
                     m_seq[mask_ls] = 'N'
                     seq = list(m_seq)
                     seq2 = list(m_seq)
