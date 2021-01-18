@@ -25,7 +25,7 @@ def seq_mask(mask_file, name):
     with open(mask_file) as mf:
         for line in mf:
             if line.startswith(name):
-                ma = np.array(line.strip().split()[2:]) - 1
+                ma = np.array(line.strip().split()[2:], dtype=np.int) - 1
                 break
     return ma
 
