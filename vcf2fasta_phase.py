@@ -37,15 +37,15 @@ def vcf2fasta(fasta_file, vcfdict, bed_coords, mask_file):
     SeqIO.index(fasta_file, 'fasta') which builds a dictionary without putting
     the sequences in memory
     """
+    progressbar = tqdm.tqdm(total=len(vcfdict.keys()), desc="make fasta", unit='inds')
     for name in vcfdict.keys():
         fastadict = SeqIO.index(fasta_file, 'fasta')
         with open(name + ".fasta", 'w') as out_file:
             for chrom in fastadict.keys():
                 header = fastadict[chrom].id
-                sequence = fastadict[chrom].seq   # strings are immutable
+                sequence = str(fastadict[chrom].seq)   # strings are immutable
                 # add mask
                 if mask_file:
-                    breakpoint()
                     mask_ls = seq_mask(mask_file, name)
                     m_seq = np.char.array(list(sequence))
                     m_seq[mask_ls] = 'N'
@@ -90,6 +90,8 @@ def vcf2fasta(fasta_file, vcfdict, bed_coords, mask_file):
                 else:
                     out_file.write(">{}_0:{}\n{}\n".format(name, header, ''.join(seq)))
                     out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
+        progressbar.update(1)
+    progressbar.close()
 
 
 def vcfsample(vcf_file):
