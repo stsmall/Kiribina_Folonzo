@@ -30,7 +30,7 @@ def seq_mask(mask_file, name):
     return ma
 
 
-def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_file):
+def vcf2fasta(fasta_file, vcfdict, bed_coords, mask_file):
     """reads in fasta, changes base using dictionary entry. note that fasta
        will be 0 based so position wll be -1
        notes on Biopython: SeqIO.to_dict() which builds all sequences into a
@@ -39,7 +39,7 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_file):
        in memory
     """
     for name in vcfdict.keys():
-        fastaseqs = SeqIO.parse(fastaFile, 'fasta')
+        fastaseqs = SeqIO.parse(fasta_file, 'fasta')
         breakpoint()
         # fastadict = SeqIO.to_dict(fasta, 'fasta')
         with open(name + ".fasta", 'w') as out_file:
@@ -92,20 +92,20 @@ def vcf2fasta(fastaFile, vcfdict, bed_coords, mask_file):
                     out_file.write(">{}_1:{}\n{}\n".format(name, header, ''.join(seq2)))
 
 
-def vcfsample(vcf):
+def vcfsample(vcf_file):
     """Read a vcf file and stores info in a dictionary.
 
     Here using a tuple for the key
     """
     snp_count = 0
-    with open(vcf, 'r') as vcf:
+    with open(vcf_file, 'r') as vcf:
         for line in vcf:
             if not line.startswith("#"):
                 snp_count += 1
 
     progressbar = tqdm.tqdm(total=snp_count, desc="Read VCF", unit='snp')
     vcfdict = defaultdict(list)
-    with open(vcf, 'r') as vcf:
+    with open(vcf_file, 'r') as vcf:
         for line in vcf:
             if line.startswith("#CHROM"):
                 samples = line.strip().split()
