@@ -38,9 +38,10 @@ def vcf2fasta(fastaFile, ancbed):
             seq = list(sequence)  # strings are immutable
             for pos in fastadict.keys():
                 allele = fastadict[pos]
-                # replace base w/ allele at pos-1
                 if seq[pos].islower():
                     allele = allele.lower()
+                if seq[pos] == "N":
+                    allele = "N"
                 seq[pos] = allele
             # when done with the header, write
             out_file.write(">{}\n{}\n".format(header, ''.join(seq)))
