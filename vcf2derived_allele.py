@@ -175,6 +175,7 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("vcf", type=str, help="VCF type file to reorder")
+    parser.add_argument("--ancprob", type=float, help="cutoff for HQ")
     parser.add_argument("--mask", action="store_true")
     return(parser.parse_args(args_in))
 
@@ -186,11 +187,12 @@ def main():
     #  Gather args
     # =========================================================================
     vcf_file = args.vcf
+    ancprob = args.ancprob
     mask = args.mask
     # =========================================================================
     #  Main executions
     # =========================================================================
-    low, site = repolarize(vcf_file, mask)
+    low, site = repolarize(vcf_file, mask, ancprob)
     print(f"low prob ancestral state = {low}, {low/site}")
 
 
