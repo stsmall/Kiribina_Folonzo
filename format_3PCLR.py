@@ -86,9 +86,9 @@ def input_3PCLR(pop1, pop2, out, cm):
         mout = out_dt[pos][2].split(":")[1]
         nout = out_dt[pos][0]
         mp1 = "0"
-        np1 = np1_n
+        np1 = str(np1_n)
         mp2 = "0"
-        np2 = np2_n
+        np2 = str(np2_n)
 
         if pos in pop1_dt:
             mp1 = pop1_dt[pos][2].split(":")[1]
