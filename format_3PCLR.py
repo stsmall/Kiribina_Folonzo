@@ -36,7 +36,7 @@ import argparse
 import sys
 import numpy as np
 from collections import Counter
-import tqdm
+from tqdm import tqdm
 
 
 def parse_counts(file):
