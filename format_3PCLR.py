@@ -53,20 +53,22 @@ def parse_counts(file):
 def parse_cm(file):
     pos = []
     cm = []
+    cmdt = {}
     with open(file) as f:
         for line in f:
             c, p, m = line.split()
             pos.append(p)
             cm.append(m)
+            cmdt[p] = m
 
     pos_arr = np.array(pos, dtype=np.int64)
     cm_arr = np.array(cm, dtype=np.float64)
-    return pos_arr, cm_arr
+    return pos_arr, cm_arr, cmdt
 
 
 def input_3PCLR(pop1, pop2, out, cm):
     # load cm for interpolate
-    pp, gp = parse_cm(cm)
+    pp, gp, cmdt = parse_cm(cm)
     # load counts
     np1_n, pop1_dt = parse_counts(pop1)
     np2_n, pop2_dt = parse_counts(pop2)
@@ -82,7 +84,10 @@ def input_3PCLR(pop1, pop2, out, cm):
     # write outfile
     drift_ls = []
     for pos in tqdm(out_dt.keys()):
-        cm_inp = np.interp(pos, pp, gp)
+        try:
+            cm_inp = cmdt[pos]
+        except KeyError:
+            cm_inp = np.interp(pos, pp, gp)
         anc = out_dt[pos][1].split(":")[0]
         mout = out_dt[pos][2].split(":")[1]
         nout = out_dt[pos][0]
