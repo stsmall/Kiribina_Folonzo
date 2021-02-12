@@ -44,7 +44,6 @@ def parse_counts(file):
     with open(file) as f:
         for line in f:
             x = line.split()
-            breakpoint()
             dd[x[1]] = x[3:]
             size.append(int(x[3]))
     return max(size), dd
