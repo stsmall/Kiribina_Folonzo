@@ -103,7 +103,7 @@ def input_3PCLR(pop1, pop2, out, cm):
         if anc != out_dt[pos][1].split(":")[0]:
             mout = out_dt[pos][1].split(":")[1]
         # get concat line
-        counts = "\t".joint([mp1, np1, mp2, np2, mout, nout])
+        counts = "\t".join([mp1, np1, mp2, np2, mout, nout])
         drift_ls.append(counts)
         f.write(f"{chrom}\t{pos}\t{cm_inp}\t{counts}\n")
     f.close()
