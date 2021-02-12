@@ -36,6 +36,7 @@ import argparse
 import sys
 import numpy as np
 from collections import Counter
+import tqdm
 
 
 def parse_counts(file):
@@ -77,10 +78,10 @@ def input_3PCLR(pop1, pop2, out, cm):
     pop2_n = pop2.split(".")[1]
     out_n = out.split(".")[1]
     f = open(f"{chrom}.3pclr.input", 'w')
-    f.write(f"{chrom}\tphyspos\tgenpos\tm{pop1_n}\tn{pop1_n}\tm{pop2_n}\tn{pop2_n}\tm{out_n}\tn{out_n}\n")
+    f.write(f"chr\tphyspos\tgenpos\tm{pop1_n}\tn{pop1_n}\tm{pop2_n}\tn{pop2_n}\tm{out_n}\tn{out_n}\n")
     # write outfile
     drift_ls = []
-    for pos in out_dt.keys():
+    for pos in tqdm(out_dt.keys()):
         cm_inp = np.interp(pos, pp, gp)
         anc = out_dt[pos][1].split(":")[0]
         mout = out_dt[pos][2].split(":")[1]
