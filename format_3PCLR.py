@@ -44,6 +44,7 @@ def parse_counts(file):
     with open(file) as f:
         for line in f:
             x = line.split()
+            breakpoint()
             dd[x[1]] = x[3:]
             size.append(int(x[3]))
     return max(size), dd
@@ -58,8 +59,8 @@ def parse_cm(file):
             pos.append(p)
             cm.append(m)
 
-    pos_arr = np.array(pos, dtype=np.int)
-    cm_arr = np.array(cm, dtype=np.float)
+    pos_arr = np.array(pos, dtype=np.int64)
+    cm_arr = np.array(cm, dtype=np.float64)
     return pos_arr, cm_arr
 
 
@@ -93,16 +94,12 @@ def input_3PCLR(pop1, pop2, out, cm):
         if pos in pop1_dt:
             mp1 = pop1_dt[pos][2].split(":")[1]
             np1 = pop1_dt[pos][0]
-            anc1 = pop1_dt[pos][1].split(":")[0]
+            anc = pop1_dt[pos][1].split(":")[0]
         if pos in pop2_dt:
             mp2 = pop2_dt[pos][2].split(":")[1]
             np2 = pop2_dt[pos][0]
-            anc2 = pop2_dt[pos][1].split(":")[0]
+            anc = pop2_dt[pos][1].split(":")[0]
 
-        # check polarization
-        if anc1 and anc2:
-            assert anc1 == anc2
-            anc = anc1
         # get outgroup polarize
         if anc != out_dt[pos][1].split(":")[0]:
             mout = out_dt[pos][1].split(":")[1]
