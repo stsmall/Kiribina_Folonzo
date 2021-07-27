@@ -10,7 +10,8 @@ This module is a direct implementation of:
 Example
 -------
 
-    $ python windowed_gnn.py TREE --ref 0 1 --foc 2
+    $ python windowed_gnn.py --tree chrX.nosingle.tsinfer.trees --pop_ids K F
+    $ python windowed_gnn.py --tree chrX.nosingle.tsinfer.trees --tar 0 --pop_ids K F --gnn_windows
 
 Notes
 -----
@@ -50,7 +51,7 @@ def gnn_fx(outfile, ts, ref_samples, target_samples, pop_ids):
     
     # write out df
     sample_nodes = [ts.node(n) for n in ts.samples()]
-    sample_ids = [n.id for n in target_samples]
+    sample_ids = [n.id for n in sample_nodes]
     sample_names = [json.loads(ts.individual(n.individual).metadata)['Isolate'] for n in sample_nodes]
     sample_pops = [json.loads(ts.population(n.population).metadata)['Groups'] for n in sample_nodes]
     gnn_table = pd.DataFrame(data=gnn,
@@ -254,7 +255,7 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--tree", type=str, help="tskit tree object")
-    parser.add_argument("--tar", type=str, required=True,
+    parser.add_argument("--tar", type=str, default=None,
                         help="target nodes")
     parser.add_argument("--ref", type=str, default=None, 
                         help="reference nodes")
@@ -297,7 +298,9 @@ def main():
     else:  # all populations
         ref_nodes = [ts.samples(population=i) for i in range(ts.num_populations)]
     # set target population
-    if tar_set.isnumeric():
+    if tar_set is None:
+        tar_nodes = ts.samples()
+    elif tar_set.isnumeric():
         tar_nodes = (ts.samples(population=int(tar_set)))
     else:
         tar_nodes = []
