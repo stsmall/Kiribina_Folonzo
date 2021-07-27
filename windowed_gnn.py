@@ -18,28 +18,15 @@ Notes
 
 """
 import sys
+from os import path
 import argparse
 import tskit
 import json
 import pandas as pd
 import numpy as np
-from os import path
-# plotting
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-# pdf edits
-mpl.rcParams['pdf.fonttype'] = 42
-mpl.rcParams['pdf.fonttype'] = 42
 
 
-COLOURS = ["#FDBF6F", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99",
-           "#E31A1C", "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928",
-           "#d442f5", "#403f40", "#291dad"]
-
-FOCAL_IND = "02-06207"  # sets a grey box highlight of hap in GNN plot
-
-
-def gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups, savedf=True):
+def gnn_fx(outfile, ts, ref_samples, target_samples, pop_ids):
     """Run mean GNN fx.
 
     Parameters
@@ -48,14 +35,10 @@ def gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups, savedf=True):
         DESCRIPTION.
     ts : TYPE
         DESCRIPTION.
-    ref_set : TYPE
+    ref_samples : TYPE
         DESCRIPTION.
-    focal : TYPE
+    target_samples : TYPE
         DESCRIPTION.
-    groups : TYPE
-        DESCRIPTION.
-    savedf : TYPE, optional
-        DESCRIPTION. The default is True.
 
     Returns
     -------
@@ -64,23 +47,18 @@ def gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups, savedf=True):
     """
     # calc gnn
     gnn = ts.genealogical_nearest_neighbours(target_samples, ref_samples)
-
-    # save results
-    if savedf:
-        #sample_nodes = [ts.node(n) for n in ts.samples()]
-        sample_nodes = [ts.node(n) for n in target_samples]
-        sample_ids = [n.id for n in sample_nodes]
-        sample_names = [json.loads(ts.individual(n.individual).metadata)['Isolate'] for n in sample_nodes]
-        sample_pops = [json.loads(ts.population(n.population).metadata)['Group'] for n in sample_nodes]
-        gnn_table = pd.DataFrame(
-            data=gnn,
-            index=[pd.Index(sample_ids, name="Sample_node"),
-                   pd.Index(sample_names, name="Isolate"),
-                   pd.Index(sample_pops, name="Group")],
-            columns=ref_groups
-            )
-
-        gnn_table.to_csv(f"GNN.{outfile}.csv")
+    
+    # write out df
+    sample_nodes = [ts.node(n) for n in ts.samples()]
+    sample_ids = [n.id for n in target_samples]
+    sample_names = [json.loads(ts.individual(n.individual).metadata)['Isolate'] for n in sample_nodes]
+    sample_pops = [json.loads(ts.population(n.population).metadata)['Groups'] for n in sample_nodes]
+    gnn_table = pd.DataFrame(data=gnn,
+                             index=[pd.Index(sample_ids, name="Node")],
+                             columns=pop_ids)
+    gnn_table["Isolate"] = sample_names 
+    gnn_table["Group"] = sample_pops
+    gnn_table.to_csv(f"{outfile}.gnn.csv")
 
 
 def parse_time_windows(ts, time_windows):
@@ -104,13 +82,7 @@ def parse_time_windows(ts, time_windows):
     return np.array(time_windows)
 
 
-def windowed_gnn(ts,
-                 focal,
-                 reference_sets,
-                 windows=None,
-                 time_windows=None,
-                 span_normalise=True,
-                 time_normalise=True):
+def windowed_gnn(ts, focal, reference_sets, windows=None, time_windows=None, span_normalise=True, time_normalise=True):
     """Run GNN in windows.
 
     Genealogical_nearest_neighbours with support for span- and time-based windows.
@@ -240,122 +212,58 @@ def windowed_gnn(ts,
     return A
 
 
-def gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups, foc,
-                   gnn_win, gnn_time, median=True, savedf=True):
+def gnn_windows_fx(outfile, ts, ref_samples, target_samples, pop_ids):
     """Calculate gnn in windows.
 
     Parameters
     ----------
-    ts : TYPE
-        DESCRIPTION.
-    ref_samples : TYPE
-        DESCRIPTION.
-    foc_set : TYPE
-        DESCRIPTION.
-    groups : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    gnn_dict : TYPE
-        DESCRIPTION.
-
-    """
-    windows = list(ts.breakpoints())  # all trees
-    if gnn_win and gnn_time:
-        gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows, time_windows=[0, 50])
-    elif gnn_win and not gnn_time:
-        gnn = windowed_gnn(ts, target_samples, ref_samples, windows=windows)
-    elif gnn_time and not gnn_win:
-        gnn = windowed_gnn(ts, target_samples, ref_samples, time_windows=[0, 50])
-    if median:
-        gnn_m = np.median(gnn, axis=1)
-    else:
-        gnn_m = np.mean(gnn, axis=1)
-
-    # TODO: this saves all individuals rather than just median
-    if savedf:  # save to df
-        left = list(ts.breakpoints())[:-1]
-        right = list(ts.breakpoints())[1:]
-        group = [foc] * len(left)
-        gnn_table = pd.DataFrame(
-            data=gnn_m,
-            index=[pd.Index(left, name="left_bp"),
-                   pd.Index(right, name="right_bp"),
-                   pd.Index(group, name="Group")],
-            columns=ref_groups
-            )
-        gnn_table.to_csv(f"GNN_windows.{outfile}.{foc}.csv")
-
-
-def plot_gnn_wg(gnndf, groups, focal_ind):
-    """Plot gnn.
-
-    Parameters
-    ----------
-    gnndf : TYPE
-        DESCRIPTION.
-    groups : TYPE
-        DESCRIPTION.
-    focal_inds : TYPE, optional
-        DESCRIPTION. The default is "02-06207".
+    ts : Iterator
+        tskit object, iterator of trees
+    ref_samples : List
+        list of reference sample nodes; [[0,2,3],[9,10,11]]
+    target_sample : List
+        list of target samples; [0,1,2,3]
+    pop_ids : List
+        list of population ids; ["K", "F"]
 
     Returns
     -------
     None.
 
     """
-    # load df
-    df = pd.read_csv(gnndf)
-    # prepare data
-    A = np.zeros((len(groups), len(df)))
-    for j, pop in enumerate(groups):
-        A[j, :] = df[pop].values
-    index = np.argsort(A[0])[::-1]
-    inds = df.Isolate.values
-    inds = list(inds[index])
-    x1 = inds.index(focal_ind)
-    x2 = inds.index(focal_ind, x1 + 1)
-    A = A[:, index]
+    windows = list(ts.breakpoints())  # all trees
+    gnn_win = windowed_gnn(ts, target_samples, ref_samples, windows=windows)
 
-    # plotting
-    colours = {g: COLOURS[i] for i, g in enumerate(groups)}
-    fig, ax = plt.subplots(1, figsize=(14, 4))
-    x = np.arange(len(df))
-    for j, region in enumerate(groups):
-        ax.bar(x, A[j], bottom=np.sum(A[:j, :], axis=0), label=region, width=1,
-               color=colours[region], align="edge")
-    ax.set_xlim(0, len(df) - 1)
-    ax.set_ylim(0, 1)
-    ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-    ax.set_xticks([])
-    ax.set_ylabel("GNN Fraction")
-    ax.set_title("Haplotypes sorted by GNN")
-
-    # add focal outlier
-    if focal_ind:
-        for x in [x1, x2]:
-            p = mpl.patches.Rectangle(
-                (x, 0), width=1, height=1, fill=False, linestyle="--", color="grey")
-            ax.add_patch(p)
-
-    ax.legend(bbox_to_anchor=(1.02, 0.76))
-    fig.savefig(f"{gnndf}.pdf", bbox_inches='tight')
+    # save as df
+    sample_nodes = [ts.node(n) for n in target_samples]
+    sample_names = [json.loads(ts.individual(n.individual).metadata)['Isolate'] for n in sample_nodes]
+    sample_names = list(dict.fromkeys(sample_names))
+    col_names = [f"{n}_{i}" for n in sample_names for i in [0, 1]]
+    iterables = [col_names, pop_ids]
+    index = pd.MultiIndex.from_product(iterables, names=["Isolate", "Group"])
+    gnn_table = pd.DataFrame(data=np.reshape(gnn_win,[len(gnn_win), np.product(gnn_win.shape[1:])]), columns=index)
+    gnn_table.insert(loc=0, column="left_bp", value = list(ts.breakpoints())[:-1])
+    gnn_table.insert(loc=1, column="right_bp", value = list(ts.breakpoints())[1:])
+    
+    gnn_table.to_csv(f"{outfile}.gnn_windows.csv")
+    
 
 
 def parse_args(args_in):
     """Parse args."""
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("tree", type=str, help="tskit tree object")
-    parser.add_argument("--ref", type=str, nargs="*", action="append",
-                        help="reference sets to compare to focal node")
-    parser.add_argument("--foc", type=str, nargs="*", action="append",
-                        help="focal nodes")
+    parser.add_argument("--tree", type=str, help="tskit tree object")
+    parser.add_argument("--tar", type=str, required=True,
+                        help="target nodes")
+    parser.add_argument("--ref", type=str, default=None, 
+                        help="reference nodes")
+    parser.add_argument("--pop_ids", type=str, nargs="*", action="append",
+                        help="pop ids for naming columns")
     parser.add_argument("--gnn_windows", action="store_true",
                         help="run gnn in windows mode")
-    parser.add_argument("--time_windows", action="store_true",
-                        help="run gnn in time windows mode")
+    parser.add_argument("--outfile", type=str, default=None,
+                        help="name for output file")
     return parser.parse_args(args_in)
 
 
@@ -366,43 +274,46 @@ def main():
     #  Gather args
     # =========================================================================
     tree = args.tree
-    outfile = path.split(tree)[-1]
+    outfile = args.outfile
+    if outfile is None:
+        outfile = path.split(tree)[-1]
     ref_set = args.ref
-    foc_set = args.foc
+    tar_set = args.tar
     gnn_win = args.gnn_windows
-    gnn_time = args.time_windows
+    pop_ids = args.pop_ids[0]
     # =========================================================================
     #  Loading and Checks
     # =========================================================================
     ts = tskit.load(tree)  # load tree
+    print("tree loaded")
     # set refernce for comparison
-    if ref_set:
-        ref_set = list(map(int, args.ref[0]))
-    else:
-        ref_set = range(ts.num_populations)  # all populations
+    if ref_set:  # custom ref sets for comparison
+        ref_nodes = []
+        with open(ref_set) as f:
+            for line in f:
+                x = line.split(",")
+                assert len(x) > 1, "recheck delimiter should be ,"
+                ref_nodes.append(list(map(int, x)))
+    else:  # all populations
+        ref_nodes = [ts.samples(population=i) for i in range(ts.num_populations)]
     # set target population
-    if foc_set:
-        foc_set = list(map(int, foc_set[0]))
-        target_samples = []
-        for i in foc_set:
-            target_samples.extend(ts.samples(population=i))
+    if tar_set.isnumeric():
+        tar_nodes = (ts.samples(population=int(tar_set)))
     else:
-        target_samples = ts.samples()
+        tar_nodes = []
+        with open(tar_set) as f:
+            for line in f:
+                x = line.split(",")
+                assert len(x) > 1, "recheck delimiter should be ,"
+                tar_nodes.append(list(map(int, x)))
+
     # =========================================================================
     #  Main executions
     # =========================================================================
-    ref_samples = [ts.samples(population=i) for i in ref_set]
-    ref_groups = [json.loads(ts.population(i).metadata)["Group"] for i in ref_set]
-    all_groups = [json.loads(ts.population(i).metadata)["Group"] for i in range(ts.num_populations)]
-
-    if not gnn_win and not gnn_time:
-        gnn_fx(outfile, ts, ref_samples, target_samples, ref_groups)
-        plot_gnn_wg(f"GNN.{outfile}.csv", ref_groups, FOCAL_IND)
+    if gnn_win:
+        gnn_windows_fx(outfile, ts, ref_nodes, tar_nodes, pop_ids)
     else:
-        assert len(foc_set) == 1, "windows option only works for 1 target set"
-        target_group = all_groups[foc_set[0]]
-        gnn_windows_fx(outfile, ts, ref_samples, target_samples, ref_groups,
-                       target_group, gnn_win, gnn_time)
+        gnn_fx(outfile, ts, ref_nodes, tar_nodes, pop_ids)
 
 
 if __name__ == "__main__":

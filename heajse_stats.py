@@ -43,6 +43,7 @@ module_level_variable1 : int
 """
 import argparse
 import sys
+from os import path
 import multiprocessing
 import tskit
 import pandas as pd
@@ -101,6 +102,7 @@ def tmrca_half_parallel_v1(trees):
 def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1):
     # tmrcah from hejase and ref 44 therein    
     ts = load_tree(tree_str)
+    print("tree loaded")
     global p_half
     global p_nodes
     df_list = []
@@ -170,6 +172,7 @@ def cross_coal_10_parallel(trees):
 def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
     # cross-coal 10
     ts = load_tree(tree_str)
+    print("tree loaded")
     n_trees = ts.num_trees
     df_list = []
     global p_nodes_cc
@@ -232,6 +235,8 @@ def main():
     # =========================================================================
     args_file = args.trees
     outfile = args.outfile
+    if outfile is None:
+        outfile = path.split(tree)[-1]
     pop_ids = args.pop_ids[0]
     node_file = args.node_ids
     nprocs = args.np
