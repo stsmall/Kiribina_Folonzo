@@ -301,19 +301,18 @@ def main():
     if tar_set is None:
         tar_nodes = ts.samples()
     elif tar_set.isnumeric():
-        tar_nodes = (ts.samples(population=int(tar_set)))
+        tar_nodes = ts.samples(population=int(tar_set))
     else:
         tar_nodes = []
         with open(tar_set) as f:
             for line in f:
                 x = line.split(",")
                 assert len(x) > 1, "recheck delimiter should be ,"
-                tar_nodes.append(list(map(int, x)))
+                tar_nodes.extend(list(map(int, x)))
 
     # =========================================================================
     #  Main executions
     # =========================================================================
-    breakpoint()
     if gnn_win:
         gnn_windows_fx(outfile, ts, ref_nodes, tar_nodes, pop_ids)
     else:
