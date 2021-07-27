@@ -232,18 +232,18 @@ def main():
     # =========================================================================
     args_file = args.trees
     outfile = args.outfile
-    pop_ids = args.pop_ids
+    pop_ids = args.pop_ids[0]
     node_file = args.node_ids
     nprocs = args.np
-    breakpoint()
     # load pop nodes
     pop_nodes = []
     with open(node_file) as f:
         for line in f:
             x = line.split(",")
             assert len(x) > 1, "recheck delimiter should be ,"
-            pop_nodes.append(map(int, x))
+            pop_nodes.append(list(map(int, x)))
     assert len(pop_nodes) == len(pop_ids)
+    breakpoint()
     # =========================================================================
     #  Main executions
     # =========================================================================
