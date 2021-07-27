@@ -235,6 +235,7 @@ def main():
     pop_ids = args.pop_ids
     node_file = args.node_ids
     nprocs = args.np
+    breakpoint()
     # load pop nodes
     pop_nodes = []
     with open(node_file) as f:
@@ -243,7 +244,6 @@ def main():
             assert len(x) > 1, "recheck delimiter should be ,"
             pop_nodes.append(map(int, x))
     assert len(pop_nodes) == len(pop_ids)
-    breakpoint()
     # =========================================================================
     #  Main executions
     # =========================================================================
