@@ -100,6 +100,7 @@ def tmrca_half_parallel_v1(trees):
 
 
 def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1):
+    c_per_proc = 10  # chunk per processor
     # tmrcah from hejase and ref 44 therein    
     ts = load_tree(tree_str)
     print("tree loaded")
@@ -114,7 +115,7 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
             ts_pop = ts.simplify(nodes)
             n_trees = ts_pop.num_trees
             # chunk and MP
-            nk = nprocs * 1000
+            nk = nprocs * c_per_proc
             trees = ts_pop.aslist()
             chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
             chunksize = math.ceil(nk/nprocs)
@@ -130,7 +131,7 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
             p_nodes = nodes
             n_trees = ts.num_trees
             # chunk and MP
-            nk = nprocs * 1000
+            nk = nprocs * c_per_proc
             trees = ts.aslist()
             chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
             chunksize = math.ceil(nk/nprocs)
@@ -170,7 +171,7 @@ def cross_coal_10_parallel(trees):
 
 
 def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
-    # cross-coal 10
+    c_per_proc = 10  # chunk per processor
     ts = load_tree(tree_str)
     print("tree loaded")
     n_trees = ts.num_trees
@@ -185,7 +186,7 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
         cc10_rel = []
         time_rel = []
         # chunk and MP
-        nk = nprocs * 1000
+        nk = nprocs * c_per_proc
         trees = ts.aslist()
         chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
         chunksize = math.ceil(nk/nprocs)      
