@@ -212,9 +212,9 @@ def parse_args(args_in):
                         help="file containing ARGs")
     parser.add_argument("--outfile", type=str, default=None,
                         help="name for output file")
-    parser.add_argument("--popids", type=str, nargs="*", action="append",
+    parser.add_argument("--pop_ids", type=str, nargs="*", action="append",
                         help="pop ids for naming columns")
-    parser.add_argument("--load_ids", type=str,
+    parser.add_argument("--node_ids", type=str,
                         help="load pop nodes from this file")
     parser.add_argument("--np", type=int, default=4,
                         help="number of proicessors")
@@ -232,17 +232,18 @@ def main():
     # =========================================================================
     args_file = args.trees
     outfile = args.outfile
-    pop_ids = args.popids
-    id_file = args.load_ids
+    pop_ids = args.pop_ids
+    node_file = args.node_ids
     nprocs = args.np
     # load pop nodes
     pop_nodes = []
-    with open(id_file) as f:
+    with open(node_file) as f:
         for line in f:
             x = line.split(",")
             assert len(x) > 1, "recheck delimiter should be ,"
             pop_nodes.append(map(int, x))
     assert len(pop_nodes) == len(pop_ids)
+    breakpoint()
     # =========================================================================
     #  Main executions
     # =========================================================================
