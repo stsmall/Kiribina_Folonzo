@@ -310,6 +310,7 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
+    breakpoint()
     if gnn_win:
         gnn_windows_fx(outfile, ts, ref_nodes, tar_nodes, pop_ids)
     else:
