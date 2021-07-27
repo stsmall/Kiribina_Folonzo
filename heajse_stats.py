@@ -235,6 +235,7 @@ def main():
     pop_ids = args.pop_ids[0]
     node_file = args.node_ids
     nprocs = args.np
+    fx = args.fx
     # load pop nodes
     pop_nodes = []
     with open(node_file) as f:
@@ -247,12 +248,12 @@ def main():
     # =========================================================================
     #  Main executions
     # =========================================================================
-    if args.fx is None:
+    if fx is None:
         tmrca_half(args_file, pop_nodes, pop_ids, outfile, nprocs)
         cross_coal_10(args_file, pop_nodes, pop_ids, outfile, nprocs)
-    elif args.fx == "tmrca_half":
+    elif fx == "tmrca_half":
         tmrca_half(args_file, pop_nodes, pop_ids, outfile, nprocs)
-    elif args.fx == "cross_coal_10":
+    elif fx == "cross_coal_10":
         cross_coal_10(args_file, pop_nodes, pop_ids, outfile, nprocs)
     else:
         print("fx not recognized")
