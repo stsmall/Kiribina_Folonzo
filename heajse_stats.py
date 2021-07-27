@@ -244,7 +244,6 @@ def main():
             assert len(x) > 1, "recheck delimiter should be ,"
             pop_nodes.append(list(map(int, x)))
     assert len(pop_nodes) == len(pop_ids)
-    breakpoint()
     # =========================================================================
     #  Main executions
     # =========================================================================
