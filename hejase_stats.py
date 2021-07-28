@@ -49,6 +49,7 @@ import tskit
 import pandas as pd
 import numpy as np
 import math
+import functools
 import networkx as nx
 from itertools import product, combinations
 
@@ -81,22 +82,41 @@ def tmrca_half_parallel_v2(trees):
         
     return mid, tmrcah_rel, time_rel
 
+
 def tmrca_half_parallel_v1(trees):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    pop_half = trees[0].num_samples / 2
     for t in trees:
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         tmrcah = np.inf
         for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= pop_half:
-                tmrcah = t.time(n)
-                break  
+            if t.num_samples(n) >= p_half:
+                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
+                if count_pop >= p_half:
+                    tmrcah = t.time(n)
+                    break
+        mrca = functools.reduce(t.mrca, p_nodes)
         tmrcah_rel.append(tmrcah)
-        time_rel.append(t.time(t.root))
-
+        time_rel.append(t.time(mrca))
     return mid, tmrcah_rel, time_rel
+
+# def tmrca_half_parallel_v1(trees):
+#     mid = []
+#     tmrcah_rel = []
+#     time_rel = []
+#     pop_half = trees[0].num_samples / 2
+#     for t in trees:
+#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+#         tmrcah = np.inf
+#         for n in t.nodes(order='timeasc'):
+#             if t.num_samples(n) >= pop_half:
+#                 tmrcah = t.time(n)
+#                 break  
+#         tmrcah_rel.append(tmrcah)
+#         time_rel.append(t.time(t.root))
+
+#     return mid, tmrcah_rel, time_rel
 
 
 def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1):
@@ -112,11 +132,13 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
         tmrcah_rel = []
         time_rel = []
         if version == 1:
-            ts_pop = ts.simplify(nodes)
-            n_trees = ts_pop.num_trees
+            p_half = len(nodes) / 2
+            p_nodes = nodes
+            #ts_pop = ts.simplify(nodes)  ## change 136, 139
+            n_trees = ts.num_trees
             # chunk and MP
             nk = nprocs * c_per_proc
-            trees = ts_pop.aslist()
+            trees = ts.aslist()
             chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
             chunksize = math.ceil(nk/nprocs)
             with multiprocessing.Pool(nprocs) as pool:
