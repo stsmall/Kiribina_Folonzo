@@ -45,6 +45,7 @@ import argparse
 import sys
 from os import path
 from tqdm import tqdm
+from p_tqdm import p_map
 import multiprocessing
 import tskit
 import pandas as pd
@@ -183,17 +184,16 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
     for pop, nodes in zip(pop_ids, pop_nodes):
         p_half = len(nodes) / 2
         p_nodes = nodes
-
         if nprocs > 1:
             # chunk and MP
             nk = nprocs * c_per_proc
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             #chunksize = math.ceil(nk/nprocs)
-            with multiprocessing.Pool(nprocs) as pool:
-                if version == 1:
-                    mid, tmrcah_rel, time_rel = pool.map(tmrca_half_parallel_v1, chunk_list)
-                elif version == 2:
-                    mid, tmrcah_rel, time_rel = pool.map(tmrca_half_parallel_v2, chunk_list)
+            # with multiprocessing.Pool(nprocs) as pool:
+            if version == 1:
+                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v1, chunk_list)
+            elif version == 2:
+                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v2, chunk_list)
         else:
             if version == 1:
                 mid, tmrcah_rel, time_rel = tmrca_half_v1(ts)
@@ -267,8 +267,8 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
             nk = nprocs * c_per_proc
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             #chunksize = math.ceil(nk/nprocs)
-            with multiprocessing.Pool(nprocs) as pool:
-                mid, cc10_rel, time_rel = pool.map(cross_coal_10_parallel, chunk_list)
+            #with multiprocessing.Pool(nprocs) as pool:
+            mid, cc10_rel, time_rel = p_map(cross_coal_10_parallel, chunk_list)
         else:
             mid, cc10_rel, time_rel = cross_coal_10_not_parallel(ts)
         
