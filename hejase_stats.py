@@ -200,7 +200,7 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1, version=1)
             elif version == 2:
                 mid, tmrcah_rel, time_rel = tmrca_half_v2(ts)
 
-        df_pop = pd.DataFrame({"population": pd.Series(pop*len(mid)),
+        df_pop = pd.DataFrame({"population": pd.Series([pop]*len(mid)),
                                "mid": pd.Series(mid), 
                                "tmrcah": pd.Series(tmrcah_rel), 
                                "time_rel": pd.Series(time_rel)})
