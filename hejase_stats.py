@@ -149,11 +149,10 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
             chunksize = math.ceil(nk/nprocs)
             pool = multiprocessing.Pool(nprocs)
             for i, tix in enumerate(chunk_list):
-                print(tix)
                 if version == 1:
-                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tix, chunksize=chunksize)
+                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tuple(tix), chunksize=chunksize)
                 elif version == 2:
-                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v2, tix, chunksize=chunksize)
+                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v2, tuple(tix), chunksize=chunksize)
                 mid.extend(mid_i)
                 tmrcah_rel.extend(tmrcah_i)
                 time_rel.extend(time_i)
@@ -227,7 +226,7 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
         if nprocs > 1:
             with multiprocessing.Pool(nprocs) as pool:
                 for i, tix in enumerate(chunk_list):
-                    mid_i, tmrcah_i, time_i = pool.map(cross_coal_10_parallel, tix, chunksize=chunksize)
+                    mid_i, tmrcah_i, time_i = pool.map(cross_coal_10_parallel, tuple(tix), chunksize=chunksize)
                     mid.extend(mid_i)
                     cc10_rel.extend(tmrcah_i)
                     time_rel.extend(time_i)
