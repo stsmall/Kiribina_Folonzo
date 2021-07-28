@@ -169,7 +169,7 @@ def tmrca_half_parallel_v1(tree_ix):
 #     return mid, tmrcah_rel, time_rel
 
 
-def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1):
+def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1, version=1):
     c_per_proc = 100  # chunk per processor
     # tmrcah from hejase and ref 44 therein    
     ts = load_tree(tree_str)
@@ -191,15 +191,14 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
             #chunksize = math.ceil(nk/nprocs)
             # with multiprocessing.Pool(nprocs) as pool:
             if version == 1:
-                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v1, chunk_list)
+                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v1, chunk_list, num_cpus=nprocs)
             elif version == 2:
-                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v2, chunk_list)
+                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v2, chunk_list, num_cpus=nprocs)
         else:
             if version == 1:
                 mid, tmrcah_rel, time_rel = tmrca_half_v1(ts)
             elif version == 2:
                 mid, tmrcah_rel, time_rel = tmrca_half_v2(ts)
-
 
         df_pop = pd.DataFrame({"population": pd.Series(pop*len(mid)),
                                "mid": pd.Series(mid), 
@@ -247,8 +246,8 @@ def cross_coal_10_not_parallel(ts):
     return mid, cc10_rel, time_rel
 
 
-def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
-    c_per_proc = 10  # chunk per processor
+def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
+    c_per_proc = 100  # chunk per processor
     ts = load_tree(tree_str)
     print("tree loaded")
     n_trees = ts.num_trees
@@ -268,7 +267,7 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             #chunksize = math.ceil(nk/nprocs)
             #with multiprocessing.Pool(nprocs) as pool:
-            mid, cc10_rel, time_rel = p_map(cross_coal_10_parallel, chunk_list)
+            mid, cc10_rel, time_rel = p_map(cross_coal_10_parallel, chunk_list, num_cpus=nprocs)
         else:
             mid, cc10_rel, time_rel = cross_coal_10_not_parallel(ts)
         
@@ -294,7 +293,7 @@ def parse_args(args_in):
                         help="pop ids for naming columns")
     parser.add_argument("--node_ids", type=str,
                         help="load pop nodes from this file")
-    parser.add_argument("--np", type=int, default=4,
+    parser.add_argument("--np", type=int, default=1,
                         help="number of proicessors")
     parser.add_argument("--fx", type=str, default=None,
                         choices=("tmrca_half", "cross_coal_10"),
