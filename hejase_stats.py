@@ -148,13 +148,14 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
                 nk = nprocs * c_per_proc
                 chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
                 chunksize = math.ceil(nk/nprocs)
-                with multiprocessing.Pool(nprocs) as pool:
-                    for i, tix in enumerate(chunk_list):
-                        mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tix, chunksize=chunksize)
-                        mid.extend(mid_i)
-                        tmrcah_rel.extend(tmrcah_i)
-                        time_rel.extend(time_i)
-                        print(f"{100*(i/len(chunk_list))} percent complete")
+                pool = multiprocessing.Pool(nprocs)
+                for i, tix in enumerate(chunk_list):
+                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tix, chunksize=chunksize)
+                    mid.extend(mid_i)
+                    tmrcah_rel.extend(tmrcah_i)
+                    time_rel.extend(time_i)
+                    print(f"{100*(i/len(chunk_list))} percent complete")
+                pool.close()
             else:
                 nk = nprocs * c_per_proc
                 chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
