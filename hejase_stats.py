@@ -83,26 +83,67 @@ def tmrca_half_parallel_v2(tree_ix):
         
     return mid, tmrcah_rel, time_rel
 
+def tmrca_half_v2(tree_ix):
+    mid = []
+    tmrcah_rel = []
+    time_rel = []
+    sample_half = trees.num_samples / 2
+    for ix in tree_ix:
+        t = trees.at_index(ix)
+        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+        tmrcah = np.inf
+        for n in t.nodes(order='timeasc'):
+            if t.num_samples(n) >= p_half:
+                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
+                if count_pop >= p_half:
+                    tmrcah = t.time(n)
+                    break
+        for n in t.nodes(order='timeasc'):
+            if t.num_samples(n) >= sample_half:
+                time_r = t.time(n)
+                break
+        tmrcah_rel.append(tmrcah)
+        time_rel.append(time_r)
+        
+    return mid, tmrcah_rel, time_rel
+
 
 def tmrca_half_parallel_v1(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    print(tree_ix)
-    # for ix in tree_ix:
-    #     t = trees.at_index(ix)
-    #     mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-    #     tmrcah = np.inf
-    #     for n in t.nodes(order='timeasc'):
-    #         if t.num_samples(n) >= p_half:
-    #             count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
-    #             if count_pop >= p_half:
-    #                 tmrcah = t.time(n)
-    #                 break
-    #     mrca = functools.reduce(t.mrca, p_nodes)
-    #     tmrcah_rel.append(tmrcah)
-    #     time_rel.append(t.time(mrca))
-    # return mid, tmrcah_rel, time_rel
+    t = trees.at_index(tree_ix)
+    mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+    tmrcah = np.inf
+    for n in t.nodes(order='timeasc'):
+        if t.num_samples(n) >= p_half:
+            count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
+            if count_pop >= p_half:
+                tmrcah = t.time(n)
+                break
+    mrca = functools.reduce(t.mrca, p_nodes)
+    tmrcah_rel.append(tmrcah)
+    time_rel.append(t.time(mrca))
+    return mid, tmrcah_rel, time_rel
+
+def tmrca_half_v1(tree_ix):
+    mid = []
+    tmrcah_rel = []
+    time_rel = []
+    for ix in tree_ix:
+        t = trees.at_index(ix)
+        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+        tmrcah = np.inf
+        for n in t.nodes(order='timeasc'):
+            if t.num_samples(n) >= p_half:
+                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
+                if count_pop >= p_half:
+                    tmrcah = t.time(n)
+                    break
+        mrca = functools.reduce(t.mrca, p_nodes)
+        tmrcah_rel.append(tmrcah)
+        time_rel.append(t.time(mrca))
+    return mid, tmrcah_rel, time_rel
 
 # def tmrca_half_parallel_v1_b(tree_ix):
 #     mid = []
@@ -165,9 +206,9 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
             chunksize = math.ceil(nk/nprocs)
             for i, tix in enumerate(chunk_list):    
                 if version == 1:
-                    mid_i, tmrcah_i, time_i = tmrca_half_parallel_v1(tix)
+                    mid_i, tmrcah_i, time_i = tmrca_half_v1(tix)
                 elif version == 2:
-                    mid_i, tmrcah_i, time_i = tmrca_half_parallel_v2(tix)
+                    mid_i, tmrcah_i, time_i = tmrca_half_v2(tix)
                 mid.extend(mid_i)
                 tmrcah_rel.extend(tmrcah_i)
                 time_rel.extend(time_i)
