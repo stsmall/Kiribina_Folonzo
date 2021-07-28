@@ -88,6 +88,7 @@ def tmrca_half_parallel_v1(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
+    breakpoint()
     for ix in tree_ix:
         t = trees.at_index(ix)
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
@@ -141,18 +142,30 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
         p_half = len(nodes) / 2
         p_nodes = nodes
 
-        if version == 1:
-            # chunk and MP
-            nk = nprocs * c_per_proc
-            chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
-            chunksize = math.ceil(nk/nprocs)
-            with multiprocessing.Pool(nprocs) as pool:
-                for i, args in enumerate(chunk_list):
-                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, args, chunksize=chunksize)
+        if version == 1:          
+            if nprocs > 1:
+                # chunk and MP
+                nk = nprocs * c_per_proc
+                chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
+                chunksize = math.ceil(nk/nprocs)
+                with multiprocessing.Pool(nprocs) as pool:
+                    for i, tix in enumerate(chunk_list):
+                        mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tix, chunksize=chunksize)
+                        mid.extend(mid_i)
+                        tmrcah_rel.extend(tmrcah_i)
+                        time_rel.extend(time_i)
+                        print(f"{100*(i/len(chunk_list))} percent complete")
+            else:
+                nk = nprocs * c_per_proc
+                chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
+                chunksize = math.ceil(nk/nprocs)
+                for i, tix in enumerate(chunk_list):               
+                    mid_i, tmrcah_i, time_i = tmrca_half_parallel_v1(tix)
                     mid.extend(mid_i)
                     tmrcah_rel.extend(tmrcah_i)
                     time_rel.extend(time_i)
                     print(f"{100*(i/len(chunk_list))} percent complete")
+
 
         elif version == 2:
             # chunk and MP
