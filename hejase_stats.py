@@ -59,12 +59,13 @@ def load_tree(tree):
     return ts
 
 
-def tmrca_half_parallel_v2(trees):
+def tmrca_half_parallel_v2(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    sample_half = trees[0].num_samples / 2
-    for t in trees:
+    sample_half = trees.num_samples / 2
+    for ix in tree_ix:
+        t = trees.at_index(ix)
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         tmrcah = np.inf
         for n in t.nodes(order='timeasc'):
@@ -83,11 +84,12 @@ def tmrca_half_parallel_v2(trees):
     return mid, tmrcah_rel, time_rel
 
 
-def tmrca_half_parallel_v1(trees):
+def tmrca_half_parallel_v1(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    for t in trees:
+    for ix in tree_ix:
+        t = trees.at_index(ix)
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         tmrcah = np.inf
         for n in t.nodes(order='timeasc'):
@@ -101,45 +103,48 @@ def tmrca_half_parallel_v1(trees):
         time_rel.append(t.time(mrca))
     return mid, tmrcah_rel, time_rel
 
-# def tmrca_half_parallel_v1(trees):
-#     mid = []
-#     tmrcah_rel = []
-#     time_rel = []
-#     pop_half = trees[0].num_samples / 2
-#     for t in trees:
-#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-#         tmrcah = np.inf
-#         for n in t.nodes(order='timeasc'):
-#             if t.num_samples(n) >= pop_half:
-#                 tmrcah = t.time(n)
-#                 break  
-#         tmrcah_rel.append(tmrcah)
-#         time_rel.append(t.time(t.root))
+def tmrca_half_parallel_v1_b(tree_ix):
+    mid = []
+    tmrcah_rel = []
+    time_rel = []
+    for ix in tree_ix:
+        t = trees.at_index(ix)
+        #t = t.subset(p_nodes)  # how do I take a subset of just a tree?
+        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+        tmrcah = np.inf
+        for n in t.nodes(order='timeasc'):
+            if t.num_samples(n) >= p_half:
+                tmrcah = t.time(n)
+                break  
+        tmrcah_rel.append(tmrcah)
+        time_rel.append(t.time(t.root))
 
-#     return mid, tmrcah_rel, time_rel
+    return mid, tmrcah_rel, time_rel
 
 
 def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1):
-    c_per_proc = 10  # chunk per processor
+    c_per_proc = 100  # chunk per processor
     # tmrcah from hejase and ref 44 therein    
     ts = load_tree(tree_str)
     print("tree loaded")
     global p_half
     global p_nodes
+    global trees
+    trees = ts
+    n_trees = ts.num_trees
+    tree_ix = list(range(0, n_trees))
     df_list = []
     for pop, nodes in zip(pop_ids, pop_nodes):
         mid = []
         tmrcah_rel = []
         time_rel = []
+        p_half = len(nodes) / 2
+        p_nodes = nodes
+
         if version == 1:
-            p_half = len(nodes) / 2
-            p_nodes = nodes
-            #ts_pop = ts.simplify(nodes)  ## change 136, 139
-            n_trees = ts.num_trees
             # chunk and MP
             nk = nprocs * c_per_proc
-            trees = ts.aslist()
-            chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
+            chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             chunksize = math.ceil(nk/nprocs)
             with multiprocessing.Pool(nprocs) as pool:
                 for i, args in enumerate(chunk_list):
@@ -148,14 +153,11 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
                     tmrcah_rel.extend(tmrcah_i)
                     time_rel.extend(time_i)
                     print(f"{100*(i/len(chunk_list))} percent complete")
+
         elif version == 2:
-            p_half = len(nodes) / 2
-            p_nodes = nodes
-            n_trees = ts.num_trees
             # chunk and MP
             nk = nprocs * c_per_proc
-            trees = ts.aslist()
-            chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
+            chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             chunksize = math.ceil(nk/nprocs)
             with multiprocessing.Pool(nprocs) as pool:
                 for i, args in enumerate(chunk_list):
@@ -174,12 +176,13 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
     df_pop_combine.to_csv(f"{outfile}.tmrca_half.csv", na_rep="NAN", index=False)
     
  
-def cross_coal_10_parallel(trees):
+def cross_coal_10_parallel(tree_ix):
     mid = []
     cc10_rel = []
     time_rel = []
-    sample_half = trees[0].num_samples / 2
-    for t in trees:
+    sample_half = trees.num_samples / 2
+    for ix in tree_ix:
+        t = trees.at_index(ix)
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         td = nx.DiGraph(t.as_dict_of_dicts())
         cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
@@ -197,8 +200,11 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
     ts = load_tree(tree_str)
     print("tree loaded")
     n_trees = ts.num_trees
+    tree_ix = list(range(0, n_trees))
     df_list = []
     global p_nodes_cc
+    global trees
+    trees = ts
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
     for pop, nodes in zip(pop_ids_pairs, pop_node_pairs):
@@ -209,9 +215,9 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
         time_rel = []
         # chunk and MP
         nk = nprocs * c_per_proc
-        trees = ts.aslist()
-        chunk_list = [trees[i:i + nk] for i in range(0, n_trees, nk)]
-        chunksize = math.ceil(nk/nprocs)      
+        chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
+        chunksize = math.ceil(nk/nprocs)
+
         with multiprocessing.Pool(nprocs) as pool:
             for i, args in enumerate(chunk_list):
                 mid_i, tmrcah_i, time_i = pool.map(cross_coal_10_parallel, args, chunksize=chunksize)
@@ -259,7 +265,7 @@ def main():
     args_file = args.trees
     outfile = args.outfile
     if outfile is None:
-        outfile = path.split(tree)[-1]
+        outfile = path.split(args_file)[-1]
     pop_ids = args.pop_ids[0]
     node_file = args.node_ids
     nprocs = args.np
