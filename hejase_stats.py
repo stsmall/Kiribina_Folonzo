@@ -222,7 +222,7 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
     global p_nodes_cc
     global trees
     global sample_half
-    sample_half = ts.num_samples() / 2
+    sample_half = ts.num_samples / 2
     trees = ts
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
