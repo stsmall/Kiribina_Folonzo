@@ -46,11 +46,9 @@ import sys
 from os import path
 from tqdm import tqdm
 from p_tqdm import p_map
-import multiprocessing
 import tskit
 import pandas as pd
 import numpy as np
-import math
 import functools
 import networkx as nx
 from itertools import product, combinations
@@ -61,59 +59,12 @@ def load_tree(tree):
     return ts
 
 
-def tmrca_half_v2(ts):
+def tmrca_half_not_parallel(ts):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    sample_half = ts.num_samples / 2
-    for t in tqdm(ts.trees(), total=ts.num_trees):
-        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        tmrcah = np.inf
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= p_half:
-                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
-                if count_pop >= p_half:
-                    tmrcah = t.time(n)
-                    break
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= sample_half:
-                time_r = t.time(n)
-                break
-        tmrcah_rel.append(tmrcah)
-        time_rel.append(time_r)
-        
-    return mid, tmrcah_rel, time_rel
-
-
-def tmrca_half_parallel_v2(tree_ix):
-    mid = []
-    tmrcah_rel = []
-    time_rel = []
+    time_rel2 = []
     sample_half = trees.num_samples / 2
-    for ix in tree_ix:
-        t = trees.at_index(ix)
-        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        tmrcah = np.inf
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= p_half:
-                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
-                if count_pop >= p_half:
-                    tmrcah = t.time(n)
-                    break
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= sample_half:
-                time_r = t.time(n)
-                break
-        tmrcah_rel.append(tmrcah)
-        time_rel.append(time_r)
-        
-    return mid, tmrcah_rel, time_rel
-
-
-def tmrca_half_v1(ts):
-    mid = []
-    tmrcah_rel = []
-    time_rel = []
     for t in tqdm(ts.trees(), total=ts.num_trees):
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         tmrcah = np.inf
@@ -123,13 +74,21 @@ def tmrca_half_v1(ts):
                 if count_pop >= p_half:
                     tmrcah = t.time(n)
                     break
+        tmrcah_rel.append(np.around(tmrcah))       
         mrca = functools.reduce(t.mrca, p_nodes)
-        tmrcah_rel.append(tmrcah)
-        time_rel.append(t.time(mrca))
-    return mid, tmrcah_rel, time_rel
+        time_rel.append(np.around(t.time(mrca)))
+
+        for n in t.nodes(order='timeasc'):
+            if t.num_samples(n) >= sample_half:
+                time_r = t.time(n)
+                break
+            
+        time_rel2.append(np.around(time_r))
+        
+    return mid, tmrcah_rel, time_rel, time_rel2
 
 
-def tmrca_half_parallel_v1(tree_ix):
+def tmrca_half_parallel(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
@@ -169,8 +128,7 @@ def tmrca_half_parallel_v1(tree_ix):
 #     return mid, tmrcah_rel, time_rel
 
 
-def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1, version=1):
-    c_per_proc = 100  # chunk per processor
+def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
     # tmrcah from hejase and ref 44 therein    
     ts = load_tree(tree_str)
     print("tree loaded")
@@ -186,24 +144,20 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1, version=1)
         p_nodes = nodes
         if nprocs > 1:
             # chunk and MP
+            c_per_proc = 100  # chunk per processor
             nk = nprocs * c_per_proc
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             #chunksize = math.ceil(nk/nprocs)
             # with multiprocessing.Pool(nprocs) as pool:
-            if version == 1:
-                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v1, chunk_list, num_cpus=nprocs)
-            elif version == 2:
-                mid, tmrcah_rel, time_rel = p_map(tmrca_half_parallel_v2, chunk_list, num_cpus=nprocs)
+            mid, tmrcah_rel, time_rel, time_rel2 = p_map(tmrca_half_parallel, chunk_list, num_cpus=nprocs)
         else:
-            if version == 1:
-                mid, tmrcah_rel, time_rel = tmrca_half_v1(ts)
-            elif version == 2:
-                mid, tmrcah_rel, time_rel = tmrca_half_v2(ts)
+            mid, tmrcah_rel, time_rel, time_rel2 = tmrca_half_not_parallel(ts)
 
         df_pop = pd.DataFrame({"population": pd.Series([pop]*len(mid)),
                                "mid": pd.Series(mid), 
                                "tmrcah": pd.Series(tmrcah_rel), 
-                               "time_rel": pd.Series(time_rel)})
+                               "time_rel": pd.Series(time_rel),
+                               "time_rel2": pd.Series(time_rel2)})
         df_list.append(df_pop)
     df_pop_combine = pd.concat(df_list).reset_index(drop=True)
     df_pop_combine.to_csv(f"{outfile}.tmrca_half.csv", na_rep="NAN", index=False)
@@ -222,8 +176,8 @@ def cross_coal_10_parallel(tree_ix):
         cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
         for n in t.nodes(order='timeasc'):
             if t.num_samples(n) > sample_half:
-                cc10_rel.append(cc10)
-                time_rel.append(t.time(n))
+                cc10_rel.append(np.around(cc10))
+                time_rel.append(np.around(t.time(n)))
                 break
     return mid, cc10_rel, time_rel
 
@@ -240,14 +194,13 @@ def cross_coal_10_not_parallel(ts):
         cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
         for n in t.nodes(order='timeasc'):
             if t.num_samples(n) > sample_half:
-                cc10_rel.append(cc10)
-                time_rel.append(t.time(n))
+                cc10_rel.append(np.around(cc10))
+                time_rel.append(np.around(t.time(n)))
                 break
     return mid, cc10_rel, time_rel
 
 
 def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
-    c_per_proc = 100  # chunk per processor
     ts = load_tree(tree_str)
     print("tree loaded")
     n_trees = ts.num_trees
@@ -263,6 +216,7 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
         p_nodes_cc = nodes
         if nprocs > 1:
             # chunk and MP
+            c_per_proc = 100  # chunk per processor
             nk = nprocs * c_per_proc
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             #chunksize = math.ceil(nk/nprocs)
