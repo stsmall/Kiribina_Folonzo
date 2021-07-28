@@ -88,20 +88,21 @@ def tmrca_half_parallel_v1(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    for ix in tree_ix:
-        t = trees.at_index(ix)
-        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        tmrcah = np.inf
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= p_half:
-                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
-                if count_pop >= p_half:
-                    tmrcah = t.time(n)
-                    break
-        mrca = functools.reduce(t.mrca, p_nodes)
-        tmrcah_rel.append(tmrcah)
-        time_rel.append(t.time(mrca))
-    return mid, tmrcah_rel, time_rel
+    print(tree_ix)
+    # for ix in tree_ix:
+    #     t = trees.at_index(ix)
+    #     mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+    #     tmrcah = np.inf
+    #     for n in t.nodes(order='timeasc'):
+    #         if t.num_samples(n) >= p_half:
+    #             count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
+    #             if count_pop >= p_half:
+    #                 tmrcah = t.time(n)
+    #                 break
+    #     mrca = functools.reduce(t.mrca, p_nodes)
+    #     tmrcah_rel.append(tmrcah)
+    #     time_rel.append(t.time(mrca))
+    # return mid, tmrcah_rel, time_rel
 
 # def tmrca_half_parallel_v1_b(tree_ix):
 #     mid = []
