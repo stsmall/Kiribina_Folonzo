@@ -88,7 +88,6 @@ def tmrca_half_parallel_v1(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
-    breakpoint()
     for ix in tree_ix:
         t = trees.at_index(ix)
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
@@ -108,6 +107,7 @@ def tmrca_half_parallel_v1_b(tree_ix):
     mid = []
     tmrcah_rel = []
     time_rel = []
+    print(tree_ix)
     for ix in tree_ix:
         t = trees.at_index(ix)
         #t = t.subset(p_nodes)  # how do I take a subset of just a tree?
@@ -165,7 +165,8 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
                     mid.extend(mid_i)
                     tmrcah_rel.extend(tmrcah_i)
                     time_rel.extend(time_i)
-                    print(f"{100*(i/len(chunk_list))} percent complete")
+                    breakpoint()
+                    print(f"{100*((i+1)/len(chunk_list))} percent complete")
 
 
         elif version == 2:
