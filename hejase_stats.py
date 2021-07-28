@@ -103,24 +103,24 @@ def tmrca_half_parallel_v1(tree_ix):
         time_rel.append(t.time(mrca))
     return mid, tmrcah_rel, time_rel
 
-def tmrca_half_parallel_v1_b(tree_ix):
-    mid = []
-    tmrcah_rel = []
-    time_rel = []
-    print(tree_ix)
-    for ix in tree_ix:
-        t = trees.at_index(ix)
-        #t = t.subset(p_nodes)  # how do I take a subset of just a tree?
-        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        tmrcah = np.inf
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= p_half:
-                tmrcah = t.time(n)
-                break  
-        tmrcah_rel.append(tmrcah)
-        time_rel.append(t.time(t.root))
+# def tmrca_half_parallel_v1_b(tree_ix):
+#     mid = []
+#     tmrcah_rel = []
+#     time_rel = []
+#     print(tree_ix)
+#     for ix in tree_ix:
+#         t = trees.at_index(ix)
+#         #t = t.subset(p_nodes)  # how do I take a subset of just a tree?
+#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+#         tmrcah = np.inf
+#         for n in t.nodes(order='timeasc'):
+#             if t.num_samples(n) >= p_half:
+#                 tmrcah = t.time(n)
+#                 break  
+#         tmrcah_rel.append(tmrcah)
+#         time_rel.append(t.time(t.root))
 
-    return mid, tmrcah_rel, time_rel
+#     return mid, tmrcah_rel, time_rel
 
 
 def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1):
@@ -142,45 +142,36 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4, version=1)
         p_half = len(nodes) / 2
         p_nodes = nodes
 
-        if version == 1:          
-            if nprocs > 1:
-                # chunk and MP
-                nk = nprocs * c_per_proc
-                chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
-                chunksize = math.ceil(nk/nprocs)
-                pool = multiprocessing.Pool(nprocs)
-                for i, tix in enumerate(chunk_list):
-                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tix, chunksize=chunksize)
-                    mid.extend(mid_i)
-                    tmrcah_rel.extend(tmrcah_i)
-                    time_rel.extend(time_i)
-                    print(f"{100*(i/len(chunk_list))} percent complete")
-                pool.close()
-            else:
-                nk = nprocs * c_per_proc
-                chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
-                chunksize = math.ceil(nk/nprocs)
-                for i, tix in enumerate(chunk_list):               
-                    mid_i, tmrcah_i, time_i = tmrca_half_parallel_v1(tix)
-                    mid.extend(mid_i)
-                    tmrcah_rel.extend(tmrcah_i)
-                    time_rel.extend(time_i)
-                    breakpoint()
-                    print(f"{100*((i+1)/len(chunk_list))} percent complete")
-
-
-        elif version == 2:
+        if nprocs > 1:
             # chunk and MP
             nk = nprocs * c_per_proc
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             chunksize = math.ceil(nk/nprocs)
-            with multiprocessing.Pool(nprocs) as pool:
-                for i, args in enumerate(chunk_list):
-                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v2, args, chunksize=chunksize)
-                    mid.extend(mid_i)
-                    tmrcah_rel.extend(tmrcah_i)
-                    time_rel.extend(time_i)
-                    print(f"{100*(i/len(chunk_list))} percent complete")
+            pool = multiprocessing.Pool(nprocs)
+            for i, tix in enumerate(chunk_list):
+                print(tix)
+                if version == 1:
+                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v1, tix, chunksize=chunksize)
+                elif version == 2:
+                    mid_i, tmrcah_i, time_i = pool.map(tmrca_half_parallel_v2, tix, chunksize=chunksize)
+                mid.extend(mid_i)
+                tmrcah_rel.extend(tmrcah_i)
+                time_rel.extend(time_i)
+                print(f"{100*(i/len(chunk_list))} percent complete")
+            pool.close()
+        else:
+            nk = nprocs * c_per_proc
+            chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
+            chunksize = math.ceil(nk/nprocs)
+            for i, tix in enumerate(chunk_list):    
+                if version == 1:
+                    mid_i, tmrcah_i, time_i = tmrca_half_parallel_v1(tix)
+                elif version == 2:
+                    mid_i, tmrcah_i, time_i = tmrca_half_parallel_v2(tix)
+                mid.extend(mid_i)
+                tmrcah_rel.extend(tmrcah_i)
+                time_rel.extend(time_i)
+                print(f"{100*((i+1)/len(chunk_list))} percent complete")
 
         df_pop = pd.DataFrame({"population": pd.Series(pop*len(mid)),
                                "mid": pd.Series(mid), 
@@ -233,13 +224,22 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=4):
         chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
         chunksize = math.ceil(nk/nprocs)
 
-        with multiprocessing.Pool(nprocs) as pool:
-            for i, args in enumerate(chunk_list):
-                mid_i, tmrcah_i, time_i = pool.map(cross_coal_10_parallel, args, chunksize=chunksize)
+        if nprocs > 1:
+            with multiprocessing.Pool(nprocs) as pool:
+                for i, tix in enumerate(chunk_list):
+                    mid_i, tmrcah_i, time_i = pool.map(cross_coal_10_parallel, tix, chunksize=chunksize)
+                    mid.extend(mid_i)
+                    cc10_rel.extend(tmrcah_i)
+                    time_rel.extend(time_i)
+                    print(f"{100*((i+1)/len(chunk_list))} percent complete")
+        else:
+            for i, tix in enumerate(chunk_list):
+                mid_i, tmrcah_i, time_i = cross_coal_10_parallel(tix)
                 mid.extend(mid_i)
                 cc10_rel.extend(tmrcah_i)
                 time_rel.extend(time_i)
-                print(f"{100*(i/len(chunk_list))} percent complete")
+                print(f"{100*((i+1)/len(chunk_list))} percent complete")
+
         
         df_pop = pd.DataFrame({"population": pd.Series(pop_pair*len(mid)),
                        "mid": pd.Series(mid), 
