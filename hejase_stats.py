@@ -163,35 +163,22 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
     df_pop_combine.to_csv(f"{outfile}.tmrca_half.csv", na_rep="NAN", index=False)
     
  
-# def cross_coal_10_parallel(tree_ix):
-#     mid = []
-#     cc10_rel = []
-#     time_rel = []
-#     sample_half = trees.num_samples / 2
-#     for ix in tree_ix:
-#         t = trees.at_index(ix)
-#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-#         td = nx.DiGraph(t.as_dict_of_dicts())
-#         cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
-#         cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
-#         for n in t.nodes(order='timeasc'):
-#             if t.num_samples(n) > sample_half:
-#                 cc10_rel.append(np.around(cc10))
-#                 time_rel.append(np.around(t.time(n)))
-#                 break
-#     return mid, cc10_rel, time_rel
-
-
-def cross_coal_10_parallel(t):
-    mid = ((t.interval[1] - t.interval[0]) / 2) + t.interval[0]
-    td = nx.DiGraph(t.as_dict_of_dicts())
-    cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
-    cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
-    for n in t.nodes(order='timeasc'):
-        if t.num_samples(n) > sample_half:
-            cc10_rel = np.around(cc10)
-            time_rel = np.around(t.time(n))
-            break
+def cross_coal_10_parallel(tree_ix):
+    mid = []
+    cc10_rel = []
+    time_rel = []
+    sample_half = trees.num_samples / 2
+    for ix in tree_ix:
+        t = trees.at_index(ix)
+        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+        td = nx.DiGraph(t.as_dict_of_dicts())
+        cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
+        cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
+        cc10_rel.append(np.around(cc10))
+        for n in t.nodes(order='timeasc'):
+            if t.num_samples(n) > sample_half:
+                time_rel.append(np.around(t.time(n)))
+                break
     return mid, cc10_rel, time_rel
 
 
@@ -205,9 +192,9 @@ def cross_coal_10_not_parallel(ts):
         td = nx.DiGraph(t.as_dict_of_dicts())
         cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
         cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
+        cc10_rel.append(np.around(cc10))
         for n in t.nodes(order='timeasc'):
             if t.num_samples(n) > sample_half:
-                cc10_rel.append(np.around(cc10))
                 time_rel.append(np.around(t.time(n)))
                 break
     return mid, cc10_rel, time_rel
@@ -221,8 +208,6 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
     df_list = []
     global p_nodes_cc
     global trees
-    global sample_half
-    sample_half = ts.num_samples / 2
     trees = ts
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
@@ -236,8 +221,7 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
             chunk_list = [tree_ix[i:i + nk] for i in range(0, n_trees, nk)]
             #chunksize = math.ceil(nk/nprocs)
             #with multiprocessing.Pool(nprocs) as pool:
-            #mid, cc10_rel, time_rel = p_map(cross_coal_10_parallel, chunk_list, num_cpus=nprocs)
-            mid, cc10_rel, time_rel = p_map(cross_coal_10_parallel, ts, num_cpus=nprocs)
+            mid, cc10_rel, time_rel = p_map(cross_coal_10_parallel, chunk_list, num_cpus=nprocs)
         else:
             mid, cc10_rel, time_rel = cross_coal_10_not_parallel(ts)
         
