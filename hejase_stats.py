@@ -59,30 +59,57 @@ def load_tree(tree):
     return ts
 
 
+# def tmrca_half_not_parallel(ts):
+#     mid = []
+#     tmrcah_rel = []
+#     time_rel = []
+#     time_rel2 = []
+#     sample_half = trees.num_samples / 2
+#     for t in tqdm(ts.trees(), total=ts.num_trees):
+#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+#         tmrcah = np.inf
+#         for n in t.nodes(order='timeasc'):
+#             if t.num_samples(n) >= p_half:
+#                 count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
+#                 if count_pop >= p_half:
+#                     tmrcah = t.time(n)
+#                     break
+#         tmrcah_rel.append(np.around(tmrcah))       
+#         mrca = functools.reduce(t.mrca, p_nodes)
+#         time_rel.append(np.around(t.time(mrca)))
+
+#         for n in t.nodes(order='timeasc'):
+#             if t.num_samples(n) >= sample_half:
+#                 time_r = t.time(n)
+#                 break
+            
+#         time_rel2.append(np.around(time_r))
+        
+#     return mid, tmrcah_rel, time_rel, time_rel2
+
+
 def tmrca_half_not_parallel(ts):
     mid = []
     tmrcah_rel = []
     time_rel = []
     time_rel2 = []
     sample_half = trees.num_samples / 2
-    for t in tqdm(ts.trees(), total=ts.num_trees):
+    iter1 = ts.trees(tracked_sampels=p_nodes)
+    for t in tqdm(iter1, total=ts.num_trees):
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        tmrcah = np.inf
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= p_half:
-                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
-                if count_pop >= p_half:
-                    tmrcah = t.time(n)
-                    break
-        tmrcah_rel.append(np.around(tmrcah))       
-        mrca = functools.reduce(t.mrca, p_nodes)
-        time_rel.append(np.around(t.time(mrca)))
-
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= sample_half:
-                time_r = t.time(n)
+        tmrcah = None
+        time_r = None
+        for u in t.nodes(order='timeasc'):
+            if t.num_tracked_samples(u) >= p_half and tmrcah is None:
+                tmrcah = t.time(u)
+            if t.num_samples(u) >= sample_half and time_r is None:
+                time_r = t.time(u)
+            if tmrcah is not None and time_r is not None:
                 break
             
+        tmrcah_rel.append(tmrcah)
+        mrca = functools.reduce(t.mrca, p_nodes)
+        time_rel.append(np.around(t.time(mrca)))
         time_rel2.append(np.around(time_r))
         
     return mid, tmrcah_rel, time_rel, time_rel2
@@ -106,26 +133,6 @@ def tmrca_half_parallel(tree_ix):
         tmrcah_rel.append(tmrcah)
         time_rel.append(t.time(mrca))
     return mid, tmrcah_rel, time_rel
-
-
-# def tmrca_half_parallel_v1_b(tree_ix):
-#     mid = []
-#     tmrcah_rel = []
-#     time_rel = []
-#     print(tree_ix)
-#     for ix in tree_ix:
-#         t = trees.at_index(ix)
-#         #t = t.subset(p_nodes)  # how do I take a subset of just a tree?
-#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-#         tmrcah = np.inf
-#         for n in t.nodes(order='timeasc'):
-#             if t.num_samples(n) >= p_half:
-#                 tmrcah = t.time(n)
-#                 break  
-#         tmrcah_rel.append(tmrcah)
-#         time_rel.append(t.time(t.root))
-
-#     return mid, tmrcah_rel, time_rel
 
 
 def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
@@ -200,7 +207,7 @@ def cross_coal_10_parallel(tree_ix):
 #     return mid, cc10_rel, time_rel
 
 
-def cross_coal_10_not_parallel(ts):
+def cross_coal_10_not_parallel(ts, cc_events=10):
     mid = []
     cc10_rel = []
     time_rel = []
@@ -219,7 +226,7 @@ def cross_coal_10_not_parallel(ts):
             p1_n = tree1.num_tracked_samples(u)
             p2_n = tree2.num_tracked_samples(u)
 
-            if p1_n > n1 and p2_n > n2 and i < 10:
+            if p1_n > n1 and p2_n > n2 and i < cc_events:
                 i += 1
                 cc10.append(np.around(tree1.time(u)))
                 n1 = p1_n
@@ -228,7 +235,7 @@ def cross_coal_10_not_parallel(ts):
             if tree1.num_samples(u) > sample_half:
                 if rel is None:
                     rel = np.around(tree1.time(u))
-                if i == 10:
+                if i == cc_events:
                     break
 
         time_rel.append(rel)
