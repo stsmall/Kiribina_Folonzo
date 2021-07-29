@@ -182,21 +182,57 @@ def cross_coal_10_parallel(tree_ix):
     return mid, cc10_rel, time_rel
 
 
+# def cross_coal_10_not_parallel(ts):
+#     mid = []
+#     cc10_rel = []
+#     time_rel = []
+#     sample_half = trees.num_samples / 2
+#     for t in tqdm(ts.trees(), total=ts.num_trees):
+#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+#         td = nx.DiGraph(t.as_dict_of_dicts())
+#         cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
+#         cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
+#         cc10_rel.append(np.around(cc10))
+#         for n in t.nodes(order='timeasc'):
+#             if t.num_samples(n) > sample_half:
+#                 time_rel.append(np.around(t.time(n)))
+#                 break
+#     return mid, cc10_rel, time_rel
+
+
 def cross_coal_10_not_parallel(ts):
     mid = []
     cc10_rel = []
     time_rel = []
-    sample_half = trees.num_samples / 2
-    for t in tqdm(ts.trees(), total=ts.num_trees):
-        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        td = nx.DiGraph(t.as_dict_of_dicts())
-        cc = list(nx.all_pairs_lowest_common_ancestor(td, list(product(p_nodes_cc[0], p_nodes_cc[1]))))
-        cc10 =  np.mean(np.sort([t.time(i[1]) for i in cc])[:10])
-        cc10_rel.append(np.around(cc10))
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) > sample_half:
-                time_rel.append(np.around(t.time(n)))
-                break
+    sample_half = trees.num_samples / 2    
+
+    iter1 = ts.trees(tracked_samples=p_nodes_cc[0])
+    iter2 = ts.trees(tracked_samples=p_nodes_cc[1])   
+    for tree1, tree2 in tqdm(zip(iter1, iter2), total=ts.num_trees):
+        mid.append(((tree1.interval[1] - tree1.interval[0]) / 2) + tree1.interval[0])
+        cc10 = [] 
+        rel = None
+        n1 = 0
+        n2 = 0
+        i = 0
+        for u in tree1.nodes(order='timeasc'):
+            p1_n = tree1.num_tracked_samples(u)
+            p2_n = tree2.num_tracked_samples(u)
+
+            if p1_n > n1 and p2_n > n2 and i < 10:
+                i += 1
+                cc10.append(np.around(tree1.time(u)))
+                n1 = p1_n
+                n2 = p2_n
+
+            if tree1.num_samples(u) > sample_half:
+                if rel is None:
+                    rel = np.around(tree1.time(u))
+                if i == 10:
+                    break
+
+        time_rel.append(rel)
+        cc10_rel.append(np.around(np.mean(cc10)))
     return mid, cc10_rel, time_rel
 
 
