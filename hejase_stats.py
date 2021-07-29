@@ -94,7 +94,7 @@ def tmrca_half_not_parallel(ts):
     time_rel = []
     time_rel2 = []
     sample_half = trees.num_samples / 2
-    iter1 = ts.trees(tracked_sampels=p_nodes)
+    iter1 = ts.trees(tracked_samples=p_nodes)
     for t in tqdm(iter1, total=ts.num_trees):
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         tmrcah = None
