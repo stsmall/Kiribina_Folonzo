@@ -199,6 +199,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                     j = set(tree2.samples(u)) & node2_st
                     if len(i) >= 1 and len(j) >= 1:
                         node1_st = i ^ node1_st
+                        xx = len(node1_st)
+                        yy = len(node2_st)
                         node2_st = j ^ node2_st
                         simul_cc_events = min([len(i), len(j)])
                         num_cc += simul_cc_events
