@@ -42,7 +42,7 @@ from tqdm import tqdm
 import tskit
 print(f"using tskit version {tskit.__version__}, tested in version '0.3.5'")
 
-import pysnooper
+#import pysnooper; @pysnooper.snoop()
 
 
 def load_tree(tree_file):
@@ -154,7 +154,6 @@ def tmrca_half(ts, pop_nodes, pop_ids, outfile):
     df_pop_combine.to_csv(f"{outfile}.tmrca_half.csv", na_rep="NAN", index=False)
 
 
-@pysnooper.snoop()
 def calc_cc10(ts, p_nodes_cc, cc_events=10):
     """Calculate the cross coalescent of two populations.
     
@@ -324,11 +323,13 @@ def main():
 
 
 if __name__ == "__main__":
+    
+    breakpoint()    
+    import msprime
+    p_nodes1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    p_nodes2 = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    p_nodes_cc = [p_nodes1, p_nodes2]
+    ts = msprime.sim_ancestry(10, random_seed=234)
+    mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, p_nodes1)
+    mid, cc10_ls, time_rel = calc_cc10(ts, p_nodes_cc)
     main()
-    # import msprime
-    # p_nodes1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    # p_nodes2 = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-    # p_nodes_cc = [p_nodes1, p_nodes2]
-    # ts = msprime.sim_ancestry(10, random_seed=234)
-    # mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, p_nodes1)
-    # mid, cc10_ls, time_rel = calc_cc10(ts, p_nodes_cc)
