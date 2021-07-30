@@ -198,13 +198,11 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                 if num_pop1 > 0 and num_pop2 > 0:
                     proposed_cc1 = set(tree1.samples(u)) & p1_samples
                     proposed_cc2 = set(tree2.samples(u)) & p2_samples
-                    intersect_cc1 = proposed_cc1 & used_node1
-                    intersect_cc2 = proposed_cc2 & used_node2
-                    if not intersect_cc1 and not intersect_cc2:
+                    intersect_cc1 = proposed_cc1 ^ used_node1
+                    intersect_cc2 = proposed_cc2 ^ used_node2
+                    if intersect_cc1 and intersect_cc2:
                         used_node1 |= proposed_cc1
                         used_node2 |= proposed_cc2
-                        xx = len(used_node1)
-                        yy = len(used_node2)
                         simul_cc_events = min([len(proposed_cc1), len(proposed_cc2)])
                         num_cc += simul_cc_events
                         cc_mrca_time = [np.around(tree1.time(u))] * simul_cc_events
@@ -330,6 +328,5 @@ if __name__ == "__main__":
     p_nodes2 = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     p_nodes_cc = [p_nodes1, p_nodes2]
     ts = msprime.sim_ancestry(10, random_seed=234)
-    mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, p_nodes1)
     mid, cc10_ls, time_rel = calc_cc10(ts, p_nodes_cc)
     main()
