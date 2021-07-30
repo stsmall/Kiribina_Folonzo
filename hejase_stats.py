@@ -181,9 +181,10 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     cc10_ls = []
     time_rel = []
     sample_half = ts.num_samples / 2    
-
-    iter1 = ts.trees(tracked_samples=p_nodes_cc[0])
-    iter2 = ts.trees(tracked_samples=p_nodes_cc[1])   
+    node1_st = set(p_nodes_cc[0])
+    node2_st = set(p_nodes_cc[1])
+    iter1 = ts.trees(tracked_samples=p_nodes_cc[0], sample_lists=True)
+    iter2 = ts.trees(tracked_samples=p_nodes_cc[1], sample_lists=True)   
     for tree1, tree2 in tqdm(zip(iter1, iter2), total=ts.num_trees):
         mid.append(((tree1.interval[1] - tree1.interval[0]) / 2) + tree1.interval[0])
         cc10_tree = [] 
@@ -192,20 +193,24 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
         for u in tree1.nodes(order='timeasc'):
             num_pop1 = tree1.num_tracked_samples(u)
             num_pop2 = tree2.num_tracked_samples(u)
-            if all([num_cc < n for n in [num_pop1, num_pop2, cc_events]]):
-                simul_cc_events = min([num_cc - n for n in [num_pop1, num_pop2]])
-                num_cc += simul_cc_events
-                cc_mrca_time = [np.around(tree1.time(u))] * simul_cc_events
-                cc10_tree.extend(cc_mrca_time)
-
+            if num_cc < cc_events:
+                if num_pop1 > 0 and num_pop2 > 0:
+                    i = set(tree1.samples(u)) & node1_st
+                    j = set(tree2.samples(u)) & node2_st
+                    if len(i) >= 1 and len(j) >= 1:
+                        node1_st = i ^ node1_st
+                        node2_st = j ^ node2_st
+                        simul_cc_events = min([len(i), len(j)])
+                        num_cc += simul_cc_events
+                        cc_mrca_time = [np.around(tree1.time(u))] * simul_cc_events
+                        cc10_tree.extend(cc_mrca_time)
             if tree1.num_samples(u) > sample_half:
                 if sample_half_time is None:
                     sample_half_time = np.around(tree1.time(u))
-                if num_cc == cc_events:
+                if num_cc >= cc_events:
                     break
-
         time_rel.append(sample_half_time)
-        cc10_ls.append(cc10_tree)
+        cc10_ls.append(cc10_tree[:cc_events])
         
     return mid, cc10_ls, time_rel
 
@@ -314,3 +319,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # import msprime
+    # p_nodes1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # p_nodes2 = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    # p_nodes_cc = [p_nodes1, p_nodes2]
+    # ts = msprime.sim_ancestry(10, random_seed=234)
+    # mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, p_nodes1)
+    # mid, cc10_ls, time_rel = calc_cc10(ts, p_nodes_cc)
