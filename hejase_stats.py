@@ -49,6 +49,7 @@ import tskit
 import pandas as pd
 import numpy as np
 import functools
+from itertools import combinations
 
 
 def load_tree(tree):
@@ -61,60 +62,30 @@ def calc_tmrcah(ts, p_nodes):
     tmrcah_rel = []
     time_rel = []
     time_rel2 = []
-    sample_half = ts.num_samples / 2
     p_half = len(p_nodes) / 2
-    for t in tqdm(ts.trees(), total=ts.num_trees):
+    sample_half = ts.num_samples / 2
+    iter1 = ts.trees(tracked_samples=p_nodes)
+    for t in tqdm(iter1, total=ts.num_trees):
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-        tmrcah = np.inf
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= p_half:
-                count_pop = len(list(set(list(t.leaves(n))) & set(p_nodes)))
-                if count_pop >= p_half:
-                    tmrcah = t.time(n)
-                    break
-        tmrcah_rel.append(np.around(tmrcah))       
-        mrca = functools.reduce(t.mrca, p_nodes)
-        time_rel.append(np.around(t.time(mrca)))
-
-        for n in t.nodes(order='timeasc'):
-            if t.num_samples(n) >= sample_half:
-                time_r = t.time(n)
+        tmrcah = None
+        time_r = None
+        for u in t.nodes(order='timeasc'):
+            if t.num_tracked_samples(u) >= p_half and tmrcah is None:
+                tmrcah = t.time(u)
+            if t.num_samples(u) >= sample_half and time_r is None:
+                time_r = t.time(u)
+            if tmrcah is not None and time_r is not None:
                 break
             
+        tmrcah_rel.append(np.around(tmrcah))
+        mrca = functools.reduce(t.mrca, p_nodes)
+        time_rel.append(np.around(t.time(mrca)))
         time_rel2.append(np.around(time_r))
         
     return mid, tmrcah_rel, time_rel, time_rel2
 
 
-# def calc_tmrcah(ts, p_nodes):
-#     mid = []
-#     tmrcah_rel = []
-#     time_rel = []
-#     time_rel2 = []
-#     p_half = len(p_nodes) / 2
-#     sample_half = ts.num_samples / 2
-#     iter1 = ts.trees(tracked_samples=p_nodes)
-#     for t in tqdm(iter1, total=ts.num_trees):
-#         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
-#         tmrcah = None
-#         time_r = None
-#         for u in t.nodes(order='timeasc'):
-#             if t.num_tracked_samples(u) >= p_half and tmrcah is None:
-#                 tmrcah = t.time(u)
-#             if t.num_samples(u) >= sample_half and time_r is None:
-#                 time_r = t.time(u)
-#             if tmrcah is not None and time_r is not None:
-#                 break
-            
-#         tmrcah_rel.append(np.around(tmrcah))
-#         mrca = functools.reduce(t.mrca, p_nodes)
-#         time_rel.append(np.around(t.time(mrca)))
-#         time_rel2.append(np.around(time_r))
-        
-#     return mid, tmrcah_rel, time_rel, time_rel2
-
-
-def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
+def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out"):
     # tmrcah from hejase and ref 44 therein    
     ts = load_tree(tree_str)
     print("tree loaded")
@@ -132,7 +103,7 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
     df_pop_combine.to_csv(f"{outfile}.tmrca_half.csv", na_rep="NAN", index=False)
 
 
-def calc_cc10(ts, p_nodes_cc, cc_events=5):
+def calc_cc10(ts, p_nodes_cc, cc_events=10):
     mid = []
     cc10_rel = []
     time_rel = []
@@ -169,7 +140,7 @@ def calc_cc10(ts, p_nodes_cc, cc_events=5):
     return mid, cc10_rel, time_rel
 
 
-def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out", nprocs=1):
+def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out"):
     ts = load_tree(tree_str)
     print("tree loaded")
     df_list = []
