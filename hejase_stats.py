@@ -178,7 +178,7 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
 
     """
     mid = []
-    cc10_rel = []
+    cc10_ls = []
     time_rel = []
     sample_half = ts.num_samples / 2    
 
@@ -186,31 +186,28 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     iter2 = ts.trees(tracked_samples=p_nodes_cc[1])   
     for tree1, tree2 in tqdm(zip(iter1, iter2), total=ts.num_trees):
         mid.append(((tree1.interval[1] - tree1.interval[0]) / 2) + tree1.interval[0])
-        cc10 = [] 
-        rel = None
-        n1 = 0
-        n2 = 0
-        i = 0
+        cc10_tree = [] 
+        sample_half_time = None
+        num_cc = 0
         for u in tree1.nodes(order='timeasc'):
-            p1_n =+ tree1.num_tracked_samples(u)
-            p2_n =+ tree2.num_tracked_samples(u)
-
-            if p1_n > n1 and p2_n > n2 and i < cc_events:
-                i += 1
-                cc10.append(np.around(tree1.time(u)))
-                n1 = p1_n
-                n2 = p2_n
+            num_pop1 = tree1.num_tracked_samples(u)
+            num_pop2 = tree2.num_tracked_samples(u)
+            if all([num_cc < n for n in [num_pop1, num_pop2, cc_events]]):
+                simul_cc_events = min([num_cc - n for n in [num_pop1, num_pop2]])
+                num_cc += simul_cc_events
+                cc_mrca_time = [np.around(tree1.time(u))] * simul_cc_events
+                cc10_tree.extend(cc_mrca_time)
 
             if tree1.num_samples(u) > sample_half:
-                if rel is None:
-                    rel = np.around(tree1.time(u))
-                if i == cc_events:
+                if sample_half_time is None:
+                    sample_half_time = np.around(tree1.time(u))
+                if num_cc == cc_events:
                     break
 
-        time_rel.append(rel)
-        cc10_rel.append(cc10)
+        time_rel.append(sample_half_time)
+        cc10_ls.append(cc10_tree)
         
-    return mid, cc10_rel, time_rel
+    return mid, cc10_ls, time_rel
 
 
 def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
