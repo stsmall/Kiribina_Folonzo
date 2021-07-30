@@ -182,7 +182,9 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     time_rel = []
     sample_half = ts.num_samples / 2    
     iter1 = ts.trees(tracked_samples=p_nodes_cc[0], sample_lists=True)
-    iter2 = ts.trees(tracked_samples=p_nodes_cc[1], sample_lists=True)   
+    iter2 = ts.trees(tracked_samples=p_nodes_cc[1], sample_lists=True)
+    p1_samples = set(p_nodes_cc[0])
+    p2_samples = set(p_nodes_cc[1])
     for tree1, tree2 in tqdm(zip(iter1, iter2), total=ts.num_trees):
         mid.append(((tree1.interval[1] - tree1.interval[0]) / 2) + tree1.interval[0])
         cc10_tree = [] 
@@ -195,8 +197,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
             num_pop2 = tree2.num_tracked_samples(u)
             if num_cc < cc_events:
                 if num_pop1 > 0 and num_pop2 > 0:
-                    proposed_cc1 = set(tree1.samples(u))
-                    proposed_cc2 = set(tree2.samples(u))
+                    proposed_cc1 = set(tree1.samples(u)) & p1_samples
+                    proposed_cc2 = set(tree2.samples(u)) & p2_samples
                     intersect_cc1 = proposed_cc1 & used_node1
                     intersect_cc2 = proposed_cc2 & used_node2
                     if not intersect_cc1 and not intersect_cc2:
