@@ -4,61 +4,89 @@ Created on Tue Jul 27 10:21:01 2021
 
 @author: Scott T. Small
 
-This module demonstrates documentation as specified by the `NumPy
-Documentation HOWTO`_. Docstrings may extend over multiple lines. Sections
-are created with a section header followed by an underline of equal length.
+This module calculates the tmrca half and cross coalescent 10 statistics
+from the paper of Hejase et al. 2020 
+(https://www.biorxiv.org/content/10.1101/2020.03.07.977694v2.full).
 
 Example
 -------
-Examples can be given using either the ``Example`` or ``Examples``
-sections. Sections support any reStructuredText formatting, including
-literal blocks::
+Examples using relate trees. Note that relate trees need to be converted to 
+tree sequencing format using --mode ConvertToTreeSequence.
 
-    $ python example_numpy.py
-
-
-Section breaks are created with two blank lines. Section breaks are also
-implicitly created anytime a new section starts. Section bodies *may* be
-indented:
+$ python hejase_stats.py --trees FOO.relate.trees --outfile FOO.1_2 
+    --pop_ids 1 2 --node_ids pops.nodes.txt --fx tmrca_half
 
 Notes
 -----
-    This is an example of an indented section. It's like any other section,
-    but the body is indented to help it stand out from surrounding text.
+The node file input was needed since Relate didnt transfer over information 
+about the populations, meaning the populations were not stored in the tree seq.
+The node file has a single line of comma delimited integers denoting the leaf
+id associated with the desired population or group. The pop_ids need to be in 
+the same order as the node file to ensure proper naming.
 
-If a section is indented, then a section break is created by
-resuming unindented text.
+$ > head FOO.node.txt
+1,2,3,4,5,6,7,8
+11,12,13,14,15
 
-Attributes
-----------
-module_level_variable1 : int
-    Module level variables may be documented in either the ``Attributes``
-    section of the module docstring, or in an inline docstring immediately
-    following the variable.
-
-    Either form is acceptable, but the two should not be mixed. Choose
-    one convention to document module level variables and be consistent
-    with it.
 
 """
 import argparse
-import sys
+from itertools import combinations
+import functools
+import numpy as np
 from os import path
+import pandas as pd
+import sys
 from tqdm import tqdm
 import tskit
-import pandas as pd
-import numpy as np
-import functools
-from itertools import combinations
+
 import pysnooper
 
 
 def load_tree(tree):
-    ts = tskit.load(tree)
-    return ts
+    """Reads tree sequence from disk.    
+
+    Parameters
+    ----------
+    tree : str
+        file path to tree sequence
+
+    Returns
+    -------
+    tskit tree sequencing object
+
+    """
+
+    return tskit.load(tree)
 
 @pysnooper.snoop()
 def calc_tmrcah(ts, p_nodes):
+    """Calculate the tmraca half as defined in Hejase 2020.
+    
+    "...test on the time to the most recent common ancestor of half the haploid
+    samples from a given species (TMRCAH). Requiring only half the samples
+    allows us to consider partial sweeps and provides robustness to the
+    inherent uncertainty in the inferred local trees."   
+
+    Parameters
+    ----------
+    ts : Object
+        object of type tskit tree seqeunce.
+    p_nodes : List
+        List of node ids as integers, [[0,1,2],[4,5,6]]
+
+    Returns
+    -------
+    mid : List
+        the center of the interval in base pairs position 
+    tmrcah_rel : List
+        the tmrca of half the population
+    time_rel : List
+        Full TMRCA of that population.
+    time_rel2 : List
+        Age of the youngest subtree that contains at least half of the samples.
+
+    """
     mid = []
     tmrcah_rel = []
     time_rel = []
@@ -86,14 +114,36 @@ def calc_tmrcah(ts, p_nodes):
     return mid, tmrcah_rel, time_rel, time_rel2
 
 
-def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out"):
-    # tmrcah from hejase and ref 44 therein    
+def tmrca_half(tree_str, pop_nodes, pop_ids, outfile):
+    """Calculats the tmrca half fx from Hejase et al 2020.
+    
+        "...test on the time to the most recent common ancestor of half the haploid
+    samples from a given species (TMRCAH). Requiring only half the samples
+    allows us to consider partial sweeps and provides robustness to the
+    inherent uncertainty in the inferred local trees."   
+    
+    Parameters
+    ----------
+    tree_str : str
+        file path to tree sequence type.
+    pop_nodes : List
+        population leaves as integers loaded from file.
+    pop_ids : List
+        id of population nodes to be written in DataFrame.
+    outfile : str
+        base name of DataFrame file output.
+
+    Returns
+    -------
+    None.
+
+    """
     ts = load_tree(tree_str)
     print("tree loaded")
     df_list = []
     for pop, nodes in zip(pop_ids, pop_nodes):
         mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, nodes)
-
+        # set up DataFrame
         df_pop = pd.DataFrame({"population": pd.Series([pop]*len(mid)),
                                "mid": pd.Series(mid), 
                                "tmrcah": pd.Series(tmrcah_rel), 
@@ -106,6 +156,27 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out"):
 
 @pysnooper.snoop()
 def calc_cc10(ts, p_nodes_cc, cc_events=10):
+    """Calculate the cross coalescent of two populations.
+    
+    Parameters
+    ----------
+    ts : Object
+        object of type tskit tree seqeunce.
+    p_nodes_cc : List
+        List of node ids as integers, [[0,1,2],[4,5,6]]
+    cc_events : int, optional
+        the number of cross coalescent events to track. The default is 10.
+
+    Returns
+    -------
+    mid : List
+        the center of the interval in base pairs position 
+    cc10_rel : List
+        the cross coalescent of the population
+    time_rel : List
+        Full TMRCA of that population.
+
+    """
     mid = []
     cc10_rel = []
     time_rel = []
@@ -142,7 +213,30 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     return mid, cc10_rel, time_rel
 
 
-def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out"):
+def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile):
+    """Calculate the cross coalescent 10 stat from Hejase et al 2020.
+    
+    "...For a given local tree and pair of species, we considered the 10 most 
+    recent cross coalescent events between the two species and normalized these 
+    ages, as in test 2, by the age of the youngest subtree that contains at 
+    least half of the total number of haploid samples."
+
+    Parameters
+    ----------
+    tree_str : str
+        file path to tree sequence type.
+    pop_nodes : List
+        population leaves as integers loaded from file.
+    pop_ids : List
+        id of population nodes to be written in DataFrame.
+    outfile : str
+        base name of DataFrame file output.
+
+    Returns
+    -------
+    None.
+
+    """
     ts = load_tree(tree_str)
     print("tree loaded")
     df_list = []
@@ -171,13 +265,14 @@ def parse_args(args_in):
     parser = argparse.ArgumentParser(prog=sys.argv[0],
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--trees", type=str, required=True,
-                        help="file containing ARGs")
+                        help="file containing ARGs in tskit format")
     parser.add_argument("--outfile", type=str, default=None,
-                        help="name for output file")
+                        help="bas name for output file")
     parser.add_argument("--pop_ids", type=str, nargs="*", action="append",
-                        help="pop ids for naming columns")
+                        help="pop ids for naming columns in output dataframe")
     parser.add_argument("--node_ids", type=str,
-                        help="load pop nodes from this file")
+                        help="load pop nodes from this file, one per line and" 
+                        "comma delimited")
     parser.add_argument("--fx", type=str, default=None,
                         choices=("tmrca_half", "cross_coal_10"),
                         help="which fx to run ... since they both can take a long time")
@@ -197,14 +292,14 @@ def main():
     pop_ids = args.pop_ids[0]
     node_file = args.node_ids
     fx = args.fx
-    # load pop nodes
+    # load pop nodes from file
     pop_nodes = []
     with open(node_file) as f:
         for line in f:
             x = line.split(",")
-            assert len(x) > 1, "recheck delimiter should be ,"
+            assert len(x) > 1, "recheck nodes file, delimiter should be ,"
             pop_nodes.append(list(map(int, x)))
-    assert len(pop_nodes) == len(pop_ids)
+    assert len(pop_nodes) == len(pop_ids), "some pop nodes dont have names"
     # =========================================================================
     #  Main executions
     # =========================================================================
