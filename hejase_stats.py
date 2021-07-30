@@ -181,8 +181,6 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     cc10_ls = []
     time_rel = []
     sample_half = ts.num_samples / 2    
-    node1_st = set(p_nodes_cc[0])
-    node2_st = set(p_nodes_cc[1])
     iter1 = ts.trees(tracked_samples=p_nodes_cc[0], sample_lists=True)
     iter2 = ts.trees(tracked_samples=p_nodes_cc[1], sample_lists=True)   
     for tree1, tree2 in tqdm(zip(iter1, iter2), total=ts.num_trees):
@@ -190,19 +188,23 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
         cc10_tree = [] 
         sample_half_time = None
         num_cc = 0
+        used_node1 = set()
+        used_node2 = set()
         for u in tree1.nodes(order='timeasc'):
             num_pop1 = tree1.num_tracked_samples(u)
             num_pop2 = tree2.num_tracked_samples(u)
             if num_cc < cc_events:
                 if num_pop1 > 0 and num_pop2 > 0:
-                    i = set(tree1.samples(u)) & node1_st
-                    j = set(tree2.samples(u)) & node2_st
-                    if len(i) >= 1 and len(j) >= 1:
-                        node1_st = i ^ node1_st
-                        xx = len(node1_st)
-                        yy = len(node2_st)
-                        node2_st = j ^ node2_st
-                        simul_cc_events = min([len(i), len(j)])
+                    proposed_cc1 = set(tree1.samples(u))
+                    proposed_cc2 = set(tree2.samples(u))
+                    intersect_cc1 = proposed_cc1 & used_node1
+                    intersect_cc2 = proposed_cc2 & used_node2
+                    if not intersect_cc1 and not intersect_cc2:
+                        used_node1 |= proposed_cc1
+                        used_node2 |= proposed_cc2
+                        xx = len(used_node1)
+                        yy = len(used_node2)
+                        simul_cc_events = min([len(proposed_cc1), len(proposed_cc2)])
                         num_cc += simul_cc_events
                         cc_mrca_time = [np.around(tree1.time(u))] * simul_cc_events
                         cc10_tree.extend(cc_mrca_time)
