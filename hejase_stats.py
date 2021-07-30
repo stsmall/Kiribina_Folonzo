@@ -37,13 +37,15 @@ import numpy as np
 from os import path
 import pandas as pd
 import sys
+import time
 from tqdm import tqdm
 import tskit
+print(f"using tskit version {tskit.__version__}, tested in version '0.3.5'")
 
 import pysnooper
 
 
-def load_tree(tree):
+def load_tree(tree_file):
     """Reads tree sequence from disk.    
 
     Parameters
@@ -57,7 +59,7 @@ def load_tree(tree):
 
     """
 
-    return tskit.load(tree)
+    return tskit.load(tree_file)
 
 @pysnooper.snoop()
 def calc_tmrcah(ts, p_nodes):
@@ -114,7 +116,7 @@ def calc_tmrcah(ts, p_nodes):
     return mid, tmrcah_rel, time_rel, time_rel2
 
 
-def tmrca_half(tree_str, pop_nodes, pop_ids, outfile):
+def tmrca_half(ts, pop_nodes, pop_ids, outfile):
     """Calculats the tmrca half fx from Hejase et al 2020.
     
         "...test on the time to the most recent common ancestor of half the haploid
@@ -124,8 +126,8 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile):
     
     Parameters
     ----------
-    tree_str : str
-        file path to tree sequence type.
+    ts : Object
+        object of type tskit tree seqeunce.
     pop_nodes : List
         population leaves as integers loaded from file.
     pop_ids : List
@@ -138,8 +140,6 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile):
     None.
 
     """
-    ts = load_tree(tree_str)
-    print("tree loaded")
     df_list = []
     for pop, nodes in zip(pop_ids, pop_nodes):
         mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, nodes)
@@ -213,7 +213,7 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     return mid, cc10_rel, time_rel
 
 
-def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile):
+def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
     """Calculate the cross coalescent 10 stat from Hejase et al 2020.
     
     "...For a given local tree and pair of species, we considered the 10 most 
@@ -223,8 +223,8 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile):
 
     Parameters
     ----------
-    tree_str : str
-        file path to tree sequence type.
+    ts : Object
+        object of type tskit tree seqeunce.
     pop_nodes : List
         population leaves as integers loaded from file.
     pop_ids : List
@@ -237,8 +237,6 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile):
     None.
 
     """
-    ts = load_tree(tree_str)
-    print("tree loaded")
     df_list = []
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
@@ -300,16 +298,19 @@ def main():
             assert len(x) > 1, "recheck nodes file, delimiter should be ,"
             pop_nodes.append(list(map(int, x)))
     assert len(pop_nodes) == len(pop_ids), "some pop nodes dont have names"
+    # load tree sequence
+    tic = time.perf_counter()
+    ts = load_tree(args_file)
+    toc = time.perf_counter()
+    print(f"trees loaded in {toc - tic:0.4f} seconds")
+    
     # =========================================================================
     #  Main executions
     # =========================================================================
-    if fx is None:
-        tmrca_half(args_file, pop_nodes, pop_ids, outfile)
-        cross_coal_10(args_file, pop_nodes, pop_ids, outfile)
-    elif fx == "tmrca_half":
-        tmrca_half(args_file, pop_nodes, pop_ids, outfile)
+    if fx == "tmrca_half":
+        tmrca_half(ts, pop_nodes, pop_ids, outfile)
     elif fx == "cross_coal_10":
-        cross_coal_10(args_file, pop_nodes, pop_ids, outfile)
+        cross_coal_10(ts, pop_nodes, pop_ids, outfile)
     else:
         print("fx not recognized")
 
