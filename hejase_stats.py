@@ -61,7 +61,7 @@ def load_tree(tree_file):
 
     return tskit.load(tree_file)
 
-@pysnooper.snoop()
+
 def calc_tmrcah(ts, p_nodes):
     """Calculate the tmraca half as defined in Hejase 2020.
     
@@ -192,8 +192,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
         n2 = 0
         i = 0
         for u in tree1.nodes(order='timeasc'):
-            p1_n = tree1.num_tracked_samples(u)
-            p2_n = tree2.num_tracked_samples(u)
+            p1_n =+ tree1.num_tracked_samples(u)
+            p2_n =+ tree2.num_tracked_samples(u)
 
             if p1_n > n1 and p2_n > n2 and i < cc_events:
                 i += 1
