@@ -50,13 +50,14 @@ import pandas as pd
 import numpy as np
 import functools
 from itertools import combinations
+import pysnooper
 
 
 def load_tree(tree):
     ts = tskit.load(tree)
     return ts
 
-
+@pysnooper.snoop()
 def calc_tmrcah(ts, p_nodes):
     mid = []
     tmrcah_rel = []
@@ -103,6 +104,7 @@ def tmrca_half(tree_str, pop_nodes, pop_ids, outfile="Out"):
     df_pop_combine.to_csv(f"{outfile}.tmrca_half.csv", na_rep="NAN", index=False)
 
 
+@pysnooper.snoop()
 def calc_cc10(ts, p_nodes_cc, cc_events=10):
     mid = []
     cc10_rel = []
@@ -135,7 +137,7 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                     break
 
         time_rel.append(rel)
-        cc10_rel.append(np.around(np.mean(cc10)))
+        cc10_rel.append(cc10)
         
     return mid, cc10_rel, time_rel
 
@@ -147,13 +149,17 @@ def cross_coal_10(tree_str, pop_nodes, pop_ids, outfile="Out"):
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
     for pop, nodes in zip(pop_ids_pairs, pop_node_pairs):
-        pop_pair = ["_".join(pop)]
         mid, cc10_rel, time_rel = calc_cc10(ts, nodes)
-        
-        df_pop = pd.DataFrame({"population": pd.Series(pop_pair*len(mid)),
-                       "mid": pd.Series(mid), 
-                       "cross_coal10": pd.Series(cc10_rel), 
-                       "time_rel": pd.Series(time_rel)})
+        breakpoint()
+        # prep df        
+        cc10_dt = {f"cc_{i+1}":cc for i, cc in enumerate(zip(*cc10_rel))}
+        cc10_cols = list(cc10_dt.keys())
+        cc10_dt["time_rel"] = pd.Series(time_rel)
+        pop_pair = ["_".join(pop)]
+        cc10_dt["populations"] = pd.Series(pop_pair*len(mid))
+        cc10_dt["mid"] = pd.Series(mid)
+        # save df
+        df_pop = pd.DataFrame(data=cc10_dt, columns=["population", "mid", "time_rel"]+cc10_cols) 
         df_list.append(df_pop)
     
     df_pop_combine = pd.concat(df_list).reset_index(drop=True)
