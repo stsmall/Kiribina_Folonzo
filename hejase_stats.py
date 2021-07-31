@@ -317,13 +317,4 @@ def main():
 
 
 if __name__ == "__main__":
-    
-    breakpoint()    
-    import msprime
-    p_nodes1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    p_nodes2 = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
-    p_nodes_cc = [p_nodes1, p_nodes2]
-    ts = msprime.sim_ancestry(16, random_seed=234)
-    mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, p_nodes1)
-    mid, cc10_ls, time_rel = calc_cc10(ts, p_nodes_cc)
     main()
