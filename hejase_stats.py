@@ -108,10 +108,10 @@ def calc_tmrcah(ts, p_nodes):
             if tmrcah is not None and time_r is not None:
                 break
             
-        tmrcah_rel.append(np.around(tmrcah))
+        tmrcah_rel.append(tmrcah)
         mrca = functools.reduce(t.mrca, p_nodes)
-        time_rel.append(np.around(t.time(mrca)))
-        time_rel2.append(np.around(time_r))
+        time_rel.append(t.time(mrca))
+        time_rel2.append(time_r)
         
     return mid, tmrcah_rel, time_rel, time_rel2
 
@@ -201,11 +201,11 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                         used_nodes |= proposed_cc1 | proposed_cc2
                         simul_cc_events = min([len(proposed_cc1), len(proposed_cc2)])
                         num_cc += simul_cc_events
-                        cc_mrca_time = [np.around(tree1.time(u))] * simul_cc_events
+                        cc_mrca_time = [tree1.time(u)] * simul_cc_events
                         cc10_tree.extend(cc_mrca_time)
             if tree1.num_samples(u) > sample_half:
                 if sample_half_time is None:
-                    sample_half_time = np.around(tree1.time(u))
+                    sample_half_time = tree1.time(u)
                 if num_cc >= cc_events:
                     break
         time_rel.append(sample_half_time)
