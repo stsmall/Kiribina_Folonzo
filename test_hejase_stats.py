@@ -7,6 +7,7 @@ Created on Fri Jul 30 11:22:15 2021
 """
 
 import msprime
+print(f"msprime version is {msprime.__version__}; tested with 1.0.1")
 import numpy as np
 from hejase_stats import calc_cc10
 from hejase_stats import calc_tmrcah
