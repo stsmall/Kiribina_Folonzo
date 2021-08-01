@@ -95,7 +95,7 @@ def calc_tmrcah(ts, p_nodes):
     time_rel2 = []
     p_half = len(p_nodes) / 2
     sample_half = ts.num_samples / 2
-    iter1 = ts.trees(tracked_samples=p_nodes)
+    iter1 = ts.trees(tracked_samples=p_nodes, sample_lists=True)
     for t in tqdm(iter1, total=ts.num_trees):
         mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
         tmrcah = None
@@ -209,6 +209,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                 if num_cc >= cc_events:
                     break
         time_rel.append(sample_half_time)
+        if num_cc < cc_events:
+            cc10_tree.extend([np.nan] * (cc_events - num_cc))
         cc10_ls.append(cc10_tree[:cc_events])
         
     return mid, cc10_ls, time_rel
@@ -243,13 +245,12 @@ def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
     pop_ids_pairs = combinations(pop_ids, 2)
     for pop, nodes in zip(pop_ids_pairs, pop_node_pairs):
         mid, cc10_rel, time_rel = calc_cc10(ts, nodes)
-        breakpoint()
         # prep df        
         cc10_dt = {f"cc_{i+1}":cc for i, cc in enumerate(zip(*cc10_rel))}
         cc10_cols = list(cc10_dt.keys())
         cc10_dt["time_rel"] = pd.Series(time_rel)
         pop_pair = ["_".join(pop)]
-        cc10_dt["populations"] = pd.Series(pop_pair*len(mid))
+        cc10_dt["population"] = pd.Series(pop_pair*len(mid))
         cc10_dt["mid"] = pd.Series(mid)
         # save df
         df_pop = pd.DataFrame(data=cc10_dt, columns=["population", "mid", "time_rel"]+cc10_cols) 
