@@ -34,11 +34,11 @@ with open(infile, 'r') as dxy:
             d = float(x_lin[5])
         except ValueError:
             d = np.nan
-        if p1 == "K" and p2 == "F":
+        if p1 == "K" and (p2 == "F" or p2 == "Fs"):
             kf.append(d)
         elif p1 == "K" and p2 == "M":
             km.append(d)
-        elif p1 == "F" and p2 == "M":
+        elif (p1 == "F" or p1 == "Fs") and p2 == "M":
             fm.append(d)
     w1 = np.sort(list(set(w1)))
     w2 = np.sort(list(set(w2)))
@@ -48,6 +48,7 @@ with open(f"{infile}.diff", 'w') as dxy:
     kf_arr = np.array(kf)
     km_arr = np.array(km)
     fm_arr = np.array(fm)
+    dxy.write(header[:6])
     for i, w in enumerate(w1):
         dxy.write(f"KF\tKM\t3\t{w}\t{w2[i]}\t{kf[i]-km[i]}\n")
         dxy.write(f"KF\tFM\t3\t{w}\t{w2[i]}\t{kf[i]-fm[i]}\n")
