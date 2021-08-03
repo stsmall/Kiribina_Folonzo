@@ -19,7 +19,7 @@ infile = sys.argv[1]
 
 with open(infile, 'r') as dxy:
     header = next(dxy)
-    header = header.split()
+    header = "\t".join(header.split()[:6])
     w1 = []
     w2 = []
     kf = []
