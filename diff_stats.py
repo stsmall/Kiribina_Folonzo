@@ -18,7 +18,8 @@ import numpy as np
 infile = sys.argv[1]
 
 with open(infile, 'r') as dxy:
-    header = next(dxy.split())
+    header = next(dxy)
+    header = header.split()
     w1 = []
     w2 = []
     kf = []
