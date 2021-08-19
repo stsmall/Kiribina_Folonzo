@@ -213,7 +213,7 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                     break
         time_rel.append(sample_half_time)
         if num_cc < cc_events:
-            cc10_tree.extend([np.nan] * (cc_events - num_cc))
+            cc10_tree.extend(np.repeat(np.nan, (cc_events - num_cc)))
         cc10_ls.append(cc10_tree[:cc_events])
 
     return mid, cc10_ls, time_rel
