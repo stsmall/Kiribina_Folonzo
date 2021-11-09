@@ -219,9 +219,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
         if num_cc < cc_events:
             cc10_tree.extend(np.repeat(np.nan, (cc_events - num_cc)))
         cc10_ls.append(cc10_tree[:cc_events])
-    breakpoint()
-    fst = tree1.Fst([p_nodes_cc[0], p_nodes_cc[1]])
-    return int1, int2, cc10_ls, time_rel
+    fst = ts.Fst([p_nodes_cc[0], p_nodes_cc[1]], windows="trees")
+    return int1, int2, cc10_ls, time_rel, fst
 
 
 def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
@@ -252,7 +251,7 @@ def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
     for pop, nodes in zip(pop_ids_pairs, pop_node_pairs):
-        int1, int2, cc10_rel, time_rel = calc_cc10(ts, nodes)
+        int1, int2, cc10_rel, time_rel, fst = calc_cc10(ts, nodes)
         # prep df
         cc10_dt = {f"cc_{i+1}": cc for i, cc in enumerate(zip(*cc10_rel))}
         cc10_cols = list(cc10_dt.keys())
@@ -261,9 +260,10 @@ def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
         cc10_dt["population"] = pd.Series(pop_pair*len(int1))
         cc10_dt["tree_start"] = pd.Series(int1)
         cc10_dt["tree_end"] = pd.Series(int2)
+        cc10_dt["FST"] = pd.Series(fst)
         # save df
         df_pop = pd.DataFrame(data=cc10_dt, columns=[
-                              "population", "tree_start", "tree_end", "time_rel"]+cc10_cols)
+                              "population", "tree_start", "tree_end", "FST", "time_rel"]+cc10_cols)
         df_list.append(df_pop)
 
     df_pop_combine = pd.concat(df_list).reset_index(drop=True)
