@@ -11,7 +11,7 @@ with genotype vcfs
 Example
 -------
 
-    $ python apply_filet_to_vcf.py -v VCF.unfiltered -d individual/filteredVcfs \
+    $ python apply_filter_to_vcf.py -v VCF.unfiltered -d individual/filteredVcfs \
         -o output_file
 
 Notes

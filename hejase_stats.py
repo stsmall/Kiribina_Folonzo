@@ -88,7 +88,8 @@ def calc_tmrcah(ts, p_nodes):
         Age of the youngest subtree that contains at least half of the samples.
 
     """
-    mid = []
+    int1 = []
+    int2 = []
     tmrcah_rel = []
     time_rel = []
     time_rel2 = []
@@ -96,7 +97,8 @@ def calc_tmrcah(ts, p_nodes):
     sample_half = ts.num_samples / 2
     iter1 = ts.trees(tracked_samples=p_nodes, sample_lists=True)
     for t in tqdm(iter1, total=ts.num_trees):
-        mid.append(((t.interval[1] - t.interval[0]) / 2) + t.interval[0])
+        int1.append(t.interval[0])
+        int2.append(t.interval[1])
         tmrcah = None
         time_r = None
         for u in t.nodes(order='timeasc'):
@@ -113,7 +115,7 @@ def calc_tmrcah(ts, p_nodes):
         time_rel.append(mrca_t)
         time_rel2.append(time_r)
 
-    return mid, tmrcah_rel, time_rel, time_rel2
+    return int1, int2, tmrcah_rel, time_rel, time_rel2
 
 
 def tmrca_half(ts, pop_nodes, pop_ids, outfile):
@@ -142,10 +144,11 @@ def tmrca_half(ts, pop_nodes, pop_ids, outfile):
     """
     df_list = []
     for pop, nodes in zip(pop_ids, pop_nodes):
-        mid, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, nodes)
+        int1, int2, tmrcah_rel, time_rel, time_rel2 = calc_tmrcah(ts, nodes)
         # set up DataFrame
-        df_pop = pd.DataFrame({"population": pd.Series([pop]*len(mid)),
-                               "mid": pd.Series(mid),
+        df_pop = pd.DataFrame({"population": pd.Series([pop]*len(int1)),
+                               "tree_start": pd.Series(int1),
+                               "tree_end": pd.series(int2),
                                "tmrcah": pd.Series(tmrcah_rel),
                                "time_rel": pd.Series(time_rel),
                                "time_rel2": pd.Series(time_rel2)})
@@ -177,7 +180,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
         Full TMRCA of that population.
 
     """
-    mid = []
+    int1 = []
+    int2 = []
     cc10_ls = []
     time_rel = []
     sample_half = ts.num_samples / 2
@@ -186,8 +190,8 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
     p1_samples = set(p_nodes_cc[0])
     p2_samples = set(p_nodes_cc[1])
     for tree1, tree2 in tqdm(zip(iter1, iter2), total=ts.num_trees):
-        mid.append(
-            ((tree1.interval[1] - tree1.interval[0]) / 2) + tree1.interval[0])
+        int1.append(tree1.interval[0])
+        int2.append(tree1.interval[1])
         cc10_tree = []
         sample_half_time = None
         num_cc = 0
@@ -213,10 +217,10 @@ def calc_cc10(ts, p_nodes_cc, cc_events=10):
                     break
         time_rel.append(sample_half_time)
         if num_cc < cc_events:
-            cc10_tree.extend([np.nan] * (cc_events - num_cc))
+            cc10_tree.extend(np.repeat(np.nan, (cc_events - num_cc)))
         cc10_ls.append(cc10_tree[:cc_events])
-
-    return mid, cc10_ls, time_rel
+    fst = ts.Fst([p_nodes_cc[0], p_nodes_cc[1]], windows="trees")
+    return int1, int2, cc10_ls, time_rel, fst
 
 
 def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
@@ -247,17 +251,19 @@ def cross_coal_10(ts, pop_nodes, pop_ids, outfile):
     pop_node_pairs = combinations(pop_nodes, 2)
     pop_ids_pairs = combinations(pop_ids, 2)
     for pop, nodes in zip(pop_ids_pairs, pop_node_pairs):
-        mid, cc10_rel, time_rel = calc_cc10(ts, nodes)
+        int1, int2, cc10_rel, time_rel, fst = calc_cc10(ts, nodes)
         # prep df
         cc10_dt = {f"cc_{i+1}": cc for i, cc in enumerate(zip(*cc10_rel))}
         cc10_cols = list(cc10_dt.keys())
         cc10_dt["time_rel"] = pd.Series(time_rel)
         pop_pair = ["_".join(pop)]
-        cc10_dt["population"] = pd.Series(pop_pair*len(mid))
-        cc10_dt["mid"] = pd.Series(mid)
+        cc10_dt["population"] = pd.Series(pop_pair*len(int1))
+        cc10_dt["tree_start"] = pd.Series(int1)
+        cc10_dt["tree_end"] = pd.Series(int2)
+        cc10_dt["FST"] = pd.Series(fst)
         # save df
         df_pop = pd.DataFrame(data=cc10_dt, columns=[
-                              "population", "mid", "time_rel"]+cc10_cols)
+                              "population", "tree_start", "tree_end", "FST", "time_rel"]+cc10_cols)
         df_list.append(df_pop)
 
     df_pop_combine = pd.concat(df_list).reset_index(drop=True)
@@ -272,7 +278,7 @@ def parse_args(args_in):
     parser.add_argument("--trees", type=str, required=True,
                         help="file containing ARGs in tskit format")
     parser.add_argument("--outfile", type=str, default=None,
-                        help="bas name for output file")
+                        help="base name for output file")
     parser.add_argument("--pop_ids", type=str, nargs="*", action="append",
                         help="pop ids for naming columns in output dataframe")
     parser.add_argument("--node_ids", type=str,
