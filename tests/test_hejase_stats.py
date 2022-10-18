@@ -9,8 +9,8 @@ Created on Fri Jul 30 11:22:15 2021
 import msprime
 print(f"msprime version is {msprime.__version__}; tested with 1.0.1")
 import numpy as np
-from hejase_stats import calc_cc10
-from hejase_stats import calc_tmrcah
+from ..hejase_stats import calc_cc10
+from ..hejase_stats import calc_tmrcah
 
 p_nodes1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 p_nodes2 = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
